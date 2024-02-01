@@ -1,0 +1,21 @@
+---
+
+---
+
+<div x-data="orbContainer">
+  <button @click="handleClick">BUTTON</button>
+</div>
+
+<script>
+  import Alpine from "alpinejs";
+
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("orbContainer", () => ({
+      count: 0,
+      handleClick() {
+        this.count++;
+        console.log("clicked");
+      },
+    }));
+  });
+</script>

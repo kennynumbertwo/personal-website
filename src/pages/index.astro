@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { sanityClient } from "sanity:client";
 import SelectWorkList from "../components/SelectWorkList.astro";
+import OrbContainer from "../components/OrbContainer.astro";
 
 const data = await sanityClient.fetch(`
   *[_type == "project"] {
@@ -27,10 +28,10 @@ const data = await sanityClient.fetch(`
     <div class="w-full h-full bg-white/60 absolute inset-0 backdrop-blur-lg">
     </div>
     <SelectWorkList data={data} />
-    <!-- <div class="w-full h-full flex justify-center relative">
-        <OrbsContainer data={data.orbs} />
-        {activeProject && <FeaturedProjectDetails project={activeProject} />}
-      </div> -->
+    <div class="w-full h-full flex justify-center relative">
+      <OrbContainer data={data.orbs} />
+      <!-- {activeProject && <FeaturedProjectDetails project={activeProject} />} -->
+    </div>
   </main>
 </Layout>
 
