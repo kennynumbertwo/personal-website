@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { sanityClient } from "sanity:client";
+
+const projects = await sanityClient.fetch(`
+  *[_type == "project"] {
+    title,
+    slug,
+    employer->{
+      name
+    },
+    url,
+    client,
+    type,
+    technologies[]->{
+      name
+    },
+  }
+`);
+---
+
+<Layout title="Welcome to Astro.">
+  <main>
+    <h2 class="pb-3 para-lg">Featured Work</h2>
+    <ul role="list" class="px-4 z-10"></ul>
+  </main>
+</Layout>
+
+<style></style>
