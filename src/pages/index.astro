@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { sanityClient } from "sanity:client";
+import SelectWorkList from "../components/SelectWorkList.astro";
 
-const projects = await sanityClient.fetch(`
+const data = await sanityClient.fetch(`
   *[_type == "project"] {
     title,
     slug,
@@ -19,10 +20,17 @@ const projects = await sanityClient.fetch(`
 `);
 ---
 
-<Layout title="Welcome to Astro.">
-  <main>
-    <h2 class="pb-3 para-lg">Featured Work</h2>
-    <ul role="list" class="px-4 z-10"></ul>
+<Layout title="Kenny Tye Professional Work">
+  <main
+    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden border"
+  >
+    <div class="w-full h-full bg-white/60 absolute inset-0 backdrop-blur-lg">
+    </div>
+    <SelectWorkList data={data} />
+    <!-- <div class="w-full h-full flex justify-center relative">
+        <OrbsContainer data={data.orbs} />
+        {activeProject && <FeaturedProjectDetails project={activeProject} />}
+      </div> -->
   </main>
 </Layout>
 

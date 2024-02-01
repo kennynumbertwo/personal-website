@@ -1,0 +1,14 @@
+---
+const { data } = Astro.props;
+---
+
+<ul class="px-4 z-10" style={{ minWidth: "var(--menu-width)" }}>
+  <h2 class="pb-3 para-lg">Featured Work</h2>
+  {
+    data.map((item) => (
+      <li class="para-lg hover:italic">
+        <a href={`/work/${item.slug.current}`}>{item.title}</a>
+      </li>
+    ))
+  }
+</ul>
