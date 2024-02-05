@@ -5,9 +5,15 @@ const { data } = Astro.props;
 <ul class="px-4 z-10" style={{ minWidth: "var(--menu-width)" }}>
   <h2 class="pb-3 para-lg">Featured Work</h2>
   {
-    data.map((item) => (
+    data.map((item, index) => (
       <li class="para-lg hover:italic">
-        <a href={`/work/${item.slug.current}`}>{item.title}</a>
+        <button
+          class="text-left whitespace-nowrap"
+          x-on:click={`handleProjectHover(${index})`}
+          x-on:keydown.enter={`handleProjectHover(${index})`}
+        >
+          {item.title}
+        </button>
       </li>
     ))
   }

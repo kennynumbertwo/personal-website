@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineField, defineType, defineArrayMember } from "sanity";
 import { isUniqueAcrossAllDocuments, slugify } from "../../../utils";
 
 export default defineType({
@@ -62,6 +62,10 @@ export default defineType({
             title: "Marketing Site",
             value: "Marketing Site",
           },
+          {
+            title: "Web Portal",
+            value: "Web Portal",
+          },
         ],
       },
     }),
@@ -79,7 +83,7 @@ export default defineType({
     defineField({
       name: "date",
       title: "Date",
-      type: "number",
+      type: "string",
     }),
     defineField({
       name: "description",
@@ -91,7 +95,7 @@ export default defineType({
       title: "Images",
       type: "array",
       of: [
-        {
+        defineArrayMember({
           type: "image",
           fields: [
             {
@@ -100,7 +104,7 @@ export default defineType({
               type: "string",
             },
           ],
-        },
+        }),
       ],
     }),
   ],

@@ -1,38 +1,44 @@
 ---
-import Layout from "../layouts/Layout.astro";
 import { sanityClient } from "sanity:client";
+import { siteConfigQuery } from "@/lib/queries";
+import Layout from "../layouts/Layout.astro";
 import SelectWorkList from "../components/SelectWorkList.astro";
 import OrbContainer from "../components/OrbContainer.astro";
+import FeaturedProjectDetails from "../components/FeaturedProjectDetails.astro";
 
-const data = await sanityClient.fetch(`
-  *[_type == "project"] {
-    title,
-    slug,
-    employer->{
-      name
-    },
-    url,
-    client,
-    type,
-    technologies[]->{
-      name
-    },
-  }
-`);
+const data = await sanityClient.fetch(siteConfigQuery);
+const { selectWork } = data;
 ---
 
 <Layout title="Kenny Tye Professional Work">
   <main
     class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden border"
+    x-data="pageState()"
+    x-cloak
   >
     <div class="w-full h-full bg-white/60 absolute inset-0 backdrop-blur-lg">
     </div>
-    <SelectWorkList data={data} />
+    <SelectWorkList data={selectWork} />
     <div class="w-full h-full flex justify-center relative">
-      <OrbContainer data={data.orbs} />
-      <!-- {activeProject && <FeaturedProjectDetails project={activeProject} />} -->
+      <OrbContainer />
+      {
+        selectWork.map((project, index: number) => (
+          <FeaturedProjectDetails project={project} index={index} />
+        ))
+      }
     </div>
   </main>
 </Layout>
+
+<script>
+  document.addEventListener("alpine:init", () => {
+    window.Alpine.data("pageState", () => ({
+      activeProjectIndex: null,
+      handleProjectHover(index: number) {
+        this.activeProjectIndex = index;
+      },
+    }));
+  });
+</script>
 
 <style></style>

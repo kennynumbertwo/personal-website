@@ -1,0 +1,118 @@
+---
+import { Image } from "astro:assets";
+
+interface Props {
+  index: number;
+  project: {
+    client: string;
+    date: string;
+    employer: {
+      name: string;
+      website: string;
+      type: string;
+    };
+    contribution: string;
+    type: string;
+    technologies: {
+      name: string;
+    }[];
+    images: {
+      url: string;
+      alt: string;
+      dimensions: {
+        width: number;
+        height: number;
+      };
+    }[];
+  };
+}
+
+const { project, index } = Astro.props;
+const { client, date, employer, contribution, type, technologies, images } =
+  project;
+---
+
+<div
+  x-data={`{ index: ${index} }`}
+  x-show="activeProjectIndex === index"
+  class="z-10 absolute w-full h-full max-w-[1000px] para-lg py-4 px-4"
+  x-transition:enter="transition ease-in-out duration-500"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in-out duration-500"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  x-cloak
+>
+  <div class="flex justify-between pb-2 uppercase">
+    <h2>{client}</h2>
+    <span>Launched: {date}</span>
+  </div>
+  <div class="flex gap-x-2 pb-4">
+    {
+      images?.length >= 1 &&
+        images.map((image) => (
+          <div class="flex-1 w-full">
+            <Image
+              src={image.url}
+              alt={image.alt}
+              width={image.dimensions.width}
+              height={image.dimensions.height}
+              class="w-full h-full object-cover rounded-lg shadow-md"
+            />
+          </div>
+        ))
+    }
+  </div>
+  <div class="grid grid-cols-3">
+    <div class="pb-4">
+      <h3 class="uppercase">Employer</h3>
+      <div>
+        <a class="underline" href={employer.website} target="_blank">
+          {employer.name}</a
+        > / {employer.type}
+      </div>
+    </div>
+    <div class="pb-4">
+      <h3 class="uppercase">Contribution</h3>
+      <p>{contribution}</p>
+    </div>
+    <div class="pb-4">
+      <h3 class="uppercase">Type</h3>
+      <p>{type}</p>
+    </div>
+    <div class="col-span-3">
+      <h3 class="uppercase pb-1">Tech</h3>
+      <ul class="flex flex-wrap gap-1">
+        {
+          technologies.map((tech, idx) => (
+            <li
+              class="bg-black text-white px-2 py-0.5 opacity-0"
+              style={`animation-delay: ${idx * 50}ms;`}
+              x-bind:class="activeProjectIndex === index ? 'animate-enter' : ''"
+            >
+              {tech.name}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .animate-enter {
+    animation: fadeInUp 200ms ease-in-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

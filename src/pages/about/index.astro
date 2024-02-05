@@ -1,0 +1,19 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Kenny Tye - About">
+  <main
+    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden border"
+    x-data="pageState()"
+  >
+  </main>
+</Layout>
+
+<script>
+  document.addEventListener("alpine:init", () => {
+    window.Alpine.data("pageState", () => ({}));
+  });
+</script>
+
+<style></style>
