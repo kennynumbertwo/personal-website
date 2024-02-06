@@ -15,9 +15,9 @@
   </template>
 </div>
 
-<script>
+<script is:inline>
   document.addEventListener("alpine:init", () => {
-    window.Alpine.data("orbContainer", () => ({
+    Alpine.data("orbContainer", () => ({
       orbs: [],
       userOrbs: [],
       orbCount: 1,

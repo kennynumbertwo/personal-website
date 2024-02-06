@@ -22,7 +22,7 @@ const { selectWork } = data;
     <div class="w-full h-full flex justify-center relative">
       <OrbContainer />
       {
-        selectWork.map((project, index: number) => (
+        selectWork.map((project: any, index: number) => (
           <FeaturedProjectDetails project={project} index={index} />
         ))
       }
@@ -30,11 +30,11 @@ const { selectWork } = data;
   </main>
 </Layout>
 
-<script>
+<script is:inline>
   document.addEventListener("alpine:init", () => {
-    window.Alpine.data("pageState", () => ({
+    Alpine.data("pageState", () => ({
       activeProjectIndex: null,
-      handleProjectHover(index: number) {
+      handleProjectHover(index) {
         this.activeProjectIndex = index;
       },
     }));
