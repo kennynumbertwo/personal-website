@@ -2,18 +2,27 @@
 const menuItems = [
   { title: "Home", url: "/" },
   { title: "Work", url: "/work" },
-  { title: "Blog", url: "/blog" },
   { title: "Contact", url: "/contact" },
   { title: "About", url: "/about" },
+  { title: "Blog", url: "/blog" },
 ];
+
+const currentPath = Astro.url.pathname;
 ---
 
-<nav class="fixed bottom-4 px-4 z-10">
+<nav class="fixed top-4 px-4 z-10">
   <ul class="flex gap-x-8">
     {
       menuItems.map((item) => (
         <li class="h-fit">
-          <a class="link-primary para-lg" href={item.url}>
+          <a
+            class={
+              currentPath === item.url
+                ? "active para-lg link-primary active"
+                : "link-primary para-lg"
+            }
+            href={item.url}
+          >
             {item.title}
           </a>
         </li>

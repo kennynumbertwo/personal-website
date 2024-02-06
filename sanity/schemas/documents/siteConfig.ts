@@ -12,6 +12,12 @@ export default defineType({
       type: "string",
     }),
     defineField({
+      name: "about",
+      title: "About",
+      type: "array",
+      of: [{ type: "block" }],
+    }),
+    defineField({
       name: "selectWork",
       title: "Select Work",
       type: "array",

@@ -5,6 +5,7 @@ import Layout from "../layouts/Layout.astro";
 import SelectWorkList from "../components/SelectWorkList.astro";
 import OrbContainer from "../components/OrbContainer.astro";
 import FeaturedProjectDetails from "../components/FeaturedProjectDetails.astro";
+import InfoFixed from "../components/InfoFixed.astro";
 
 const data = await sanityClient.fetch(siteConfigQuery);
 const { selectWork } = data;
@@ -12,7 +13,7 @@ const { selectWork } = data;
 
 <Layout title="Kenny Tye Professional Work">
   <main
-    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden border"
+    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden"
     x-data="pageState()"
     x-cloak
   >
@@ -27,6 +28,7 @@ const { selectWork } = data;
         ))
       }
     </div>
+    <InfoFixed />
   </main>
 </Layout>
 
@@ -34,6 +36,7 @@ const { selectWork } = data;
   document.addEventListener("alpine:init", () => {
     Alpine.data("pageState", () => ({
       activeProjectIndex: null,
+      projectsActive: false,
       handleProjectHover(index) {
         this.activeProjectIndex = index;
       },

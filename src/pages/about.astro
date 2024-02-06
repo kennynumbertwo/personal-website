@@ -1,0 +1,28 @@
+---
+import { sanityClient } from "sanity:client";
+import Layout from "../layouts/Layout.astro";
+import { siteConfigQuery } from "../../lib/queries";
+import { PortableText } from "astro-portabletext";
+
+const data = await sanityClient.fetch(siteConfigQuery);
+const { about } = data;
+---
+
+<Layout title="Kenny Tye - About">
+  <main
+    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden"
+    x-data="pageState()"
+  >
+    <div class="mx-auto max-w-3xl pb-30">
+      <PortableText value={about} />
+    </div>
+  </main>
+</Layout>
+
+<script is:inline>
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("pageState", () => ({}));
+  });
+</script>
+
+<style></style>

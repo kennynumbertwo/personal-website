@@ -1,7 +1,6 @@
 ---
 import { ViewTransitions } from "astro:transitions";
 import MainNav from "../components/MainNav.astro";
-import HeaderFixed from "../components/HeaderFixed.astro";
 import "@fontsource/cutive-mono";
 interface Props {
   title: string;
@@ -22,10 +21,8 @@ const { title } = Astro.props;
     <ViewTransitions />
   </head>
   <body class="">
-    <HeaderFixed />
-    <slot />
     <MainNav />
-
+    <slot />
     <style is:global>
       :root {
         --foreground-rgb: 0, 0, 0;
@@ -72,7 +69,8 @@ const { title } = Astro.props;
           z-index: -1;
         }
         &:hover,
-        &:focus {
+        &:focus,
+        &.active {
           @apply text-white;
           &::after {
             width: calc(100% + 12px);

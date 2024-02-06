@@ -2,7 +2,11 @@
 const { data } = Astro.props;
 ---
 
-<ul class="px-4 z-10" style={{ minWidth: "var(--menu-width)" }}>
+<ul
+  class="px-4 z-10"
+  style={{ minWidth: "var(--menu-width)" }}
+  @mouseenter="projectsActive = true"
+>
   <h2 class="pb-3 para-lg">Featured Work</h2>
   {
     data.map((item: any, index: number) => (
