@@ -1,5 +1,5 @@
 import { defineField, defineType, defineArrayMember } from "sanity";
-import { isUniqueAcrossAllDocuments, slugify } from "../../../utils";
+import { isUniqueAcrossAllDocuments, slugify } from "@/utils";
 
 export default defineType({
   name: "project",

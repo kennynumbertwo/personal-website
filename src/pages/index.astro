@@ -32,16 +32,4 @@ const { selectWork } = data;
   </main>
 </Layout>
 
-<script is:inline>
-  document.addEventListener("alpine:init", () => {
-    Alpine.data("pageState", () => ({
-      activeProjectIndex: null,
-      projectsActive: false,
-      handleProjectHover(index) {
-        this.activeProjectIndex = index;
-      },
-    }));
-  });
-</script>
-
 <style></style>

@@ -2,7 +2,7 @@
 import { sanityClient } from "sanity:client";
 import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
-import { projectsQuery } from "../../lib/queries";
+import { projectsQuery } from "@/lib/queries";
 
 const data = await sanityClient.fetch(projectsQuery);
 const filteredProjects = data.filter((project: any) => {
@@ -35,11 +35,5 @@ const filteredProjects = data.filter((project: any) => {
     </div>
   </main>
 </Layout>
-
-<script is:inline>
-  document.addEventListener("alpine:init", () => {
-    Alpine.data("pageState", () => ({}));
-  });
-</script>
 
 <style></style>
