@@ -1,12 +1,14 @@
 ---
 const menuItems = [
-  { title: "Home", url: "/" },
-  { title: "Work", url: "/work" },
-  { title: "Contact", url: "/contact" },
-  { title: "About", url: "/about" },
+  { title: "Home", url: "/", path: "" },
+  { title: "Work", url: "/work", path: "/work" },
+  { title: "Contact", url: "/contact", path: "/contact" },
+  { title: "About", url: "/about", path: "/about" },
 ];
 
 const currentPath = Astro.url.pathname;
+const removeTrailingSlash = (path: any) => path.replace(/\/$/, "");
+const pathWithoutTrailingSlash = removeTrailingSlash(currentPath);
 ---
 
 <nav class="fixed top-4 px-4 z-10">
@@ -16,7 +18,7 @@ const currentPath = Astro.url.pathname;
         <li class="h-fit">
           <a
             class={
-              currentPath === item.url
+              pathWithoutTrailingSlash === item.path
                 ? "active para-lg link-primary active font-mono"
                 : "link-primary para-lg font-mono"
             }
