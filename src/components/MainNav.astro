@@ -4,7 +4,6 @@ const menuItems = [
   { title: "Work", url: "/work" },
   { title: "Contact", url: "/contact" },
   { title: "About", url: "/about" },
-  { title: "Blog", url: "/blog" },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -18,8 +17,8 @@ const currentPath = Astro.url.pathname;
           <a
             class={
               currentPath === item.url
-                ? "active para-lg link-primary active"
-                : "link-primary para-lg"
+                ? "active para-lg link-primary active font-mono"
+                : "link-primary para-lg font-mono"
             }
             href={item.url}
           >

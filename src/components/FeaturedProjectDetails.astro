@@ -44,10 +44,6 @@ const { client, date, employer, contribution, type, technologies, images } =
   x-transition:leave-end="opacity-0"
   x-cloak
 >
-  <div class="flex justify-between pb-2 uppercase">
-    <h2>{client}</h2>
-    <span>Launched: {date}</span>
-  </div>
   <div class="flex gap-x-2 pb-4">
     {
       images?.length >= 1 &&
@@ -64,9 +60,13 @@ const { client, date, employer, contribution, type, technologies, images } =
         ))
     }
   </div>
+  <div class="pb-6 uppercase">
+    <h2 class="text-30 tracking-3pc font-700 opacity-80">{client}</h2>
+    <span>Launched: {date}</span>
+  </div>
   <div class="grid grid-cols-3">
-    <div class="pb-4">
-      <h3 class="uppercase">Studio</h3>
+    <div class="pb-8">
+      <h3 class="uppercase font-700 opacity-80 tracking-3pc">Studio</h3>
       <div>
         <a class="underline" href={employer.website} target="_blank">
           {employer.name}</a
@@ -74,20 +74,20 @@ const { client, date, employer, contribution, type, technologies, images } =
       </div>
     </div>
     <div class="pb-4">
-      <h3 class="uppercase">Contribution</h3>
+      <h3 class="uppercase font-700 opacity-80 tracking-3pc">Contribution</h3>
       <p>{contribution}</p>
     </div>
     <div class="pb-4">
-      <h3 class="uppercase">Type</h3>
+      <h3 class="uppercase font-700 opacity-80 tracking-3pc">Type</h3>
       <p>{type}</p>
     </div>
     <div class="col-span-3">
-      <h3 class="uppercase pb-1">Tech</h3>
+      <h3 class="uppercase font-700 opacity-80 tracking-3pc pb-1">Tech</h3>
       <ul class="flex flex-wrap gap-1">
         {
           technologies.map((tech, idx) => (
             <li
-              class="bg-black text-white px-2 py-0.5 opacity-0"
+              class="bg-black text-white px-2 py-0.5 opacity-0 font-mono"
               style={`animation-delay: ${idx * 50}ms;`}
               x-bind:class="activeProjectIndex === index ? 'animate-enter' : ''"
             >

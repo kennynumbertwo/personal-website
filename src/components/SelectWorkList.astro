@@ -7,12 +7,14 @@ const { data } = Astro.props;
   style={{ minWidth: "var(--menu-width)" }}
   @mouseenter="projectsActive = true"
 >
-  <h2 class="pb-3 para-lg">Featured Work</h2>
+  <h2 class="pb-2 text-14 uppercase tracking-4pc font-700 opacity-80">
+    Featured Work
+  </h2>
   {
     data.map((item: any, index: number) => (
-      <li class="para-lg hover:italic">
+      <li class="">
         <button
-          class="text-left whitespace-nowrap"
+          class="text-left whitespace-nowrap text-14 leading-none -tracking-2pc font-mono hover:italic"
           x-on:click={`handleProjectHover(${index})`}
           x-on:keydown.enter={`handleProjectHover(${index})`}
         >

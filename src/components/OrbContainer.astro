@@ -1,26 +1,43 @@
 <div
+  class="w-full h-full bg-white/60 absolute inset-0 backdrop-blur-lg"
+  transition:persist
+>
+</div>
+<div
   x-data="orbContainer"
   class=""
   x-init="$watch('orbCount', value => generateOrb())"
+  transition:persist
 >
   <template x-for="orb in orbs">
     <div
       x-data="orb"
-      class="orb"
+      class="orb animate"
       :style="`top: ${orbPosY}px; left: ${orbPosX}px; width: ${orbSize}px; height: ${orbSize}px; background-color: ${orbColor}; opacity: ${orbOpacity}`"
-      x-init="$watch('timer', value => updateOrb())"
       :key="orb.id"
+      x-init="$watch('timer', value => updateOrb())"
     >
     </div>
   </template>
 </div>
+
+<script is:inline>
+  document.addEventListener("astro:before-preparation", () => {
+    const orbs = document.querySelectorAll(".orb");
+    orbs.forEach((orb) => {
+      orb.classList.remove("animate");
+    });
+  });
+</script>
 
 <style>
   .orb {
     border-radius: 50%;
     position: absolute;
     z-index: -1;
-    animation: 2500ms ease-in-out orbIn;
+    &.animate {
+      animation: 2500ms ease-in-out orbIn;
+    }
   }
   @keyframes orbIn {
     0% {

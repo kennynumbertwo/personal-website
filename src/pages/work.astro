@@ -14,21 +14,43 @@ const filteredProjects = data.filter((project: any) => {
 
 <Layout title="Kenny Tye - Work">
   <main class="flex h-full max-w-screen pt-20 px-4" x-data="pageState()">
-    <div class="grid grid-cols-5 gap-10">
+    <div
+      class="grid grid-cols-6 gap-12"
+      x-ref="projects"
+      x-data={`{
+          animateChildren() {
+            const children = this.$refs.projects.children;
+            Array.from(children).forEach((child, index) => {
+              child.style.animationDelay = \`\${index * 65}ms\`;
+              child.classList.add('animate__fade-in');
+            });
+          }
+        }
+      `}
+      x-init="animateChildren()"
+    >
       {
         filteredProjects.map((project: any) => {
           const image = project.images[0];
           return (
-            <div class="">
-              <Image
-                src={image.url}
-                alt={project.title}
-                width={image.dimensions.width}
-                height={image.dimensions.height}
-              />
-              <h2>{project.title}</h2>
-              <p>{project.description}</p>
-            </div>
+            <a class="project-card group" href={`work/${project.slug.current}`}>
+              <div class="relative overflow-hidden">
+                <Image
+                  src={image.url}
+                  alt={project.title}
+                  width={image.dimensions.width}
+                  height={image.dimensions.height}
+                  class="rounded-md inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
+                />
+              </div>
+              <div class="pt-2 justify-between">
+                <h2 class="font-700 opacity-80 tracking-2pc">
+                  {project.title}
+                </h2>
+                <p class="">{project.type}</p>
+                <p class="">{project.date}</p>
+              </div>
+            </a>
           );
         })
       }
@@ -36,4 +58,19 @@ const filteredProjects = data.filter((project: any) => {
   </main>
 </Layout>
 
-<style></style>
+<style>
+  .project-card {
+    opacity: 0;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .animate__fade-in {
+    animation: fadeIn 400ms ease forwards;
+  }
+</style>

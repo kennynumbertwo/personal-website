@@ -1,7 +1,12 @@
 ---
 import { ViewTransitions } from "astro:transitions";
 import MainNav from "../components/MainNav.astro";
+import OrbContainer from "@/components/OrbContainer.astro";
+import "../styles/base.css";
 import "@fontsource/cutive-mono";
+import "@fontsource/lato/300.css";
+import "@fontsource/lato/400.css";
+import "@fontsource/lato/700.css";
 interface Props {
   title: string;
 }
@@ -20,87 +25,9 @@ const { title } = Astro.props;
     <title>{title}</title>
     <ViewTransitions />
   </head>
-  <body class="">
+  <body class="max-h-screen max-w-screen overflow-hidden">
+    <OrbContainer />
     <MainNav />
     <slot />
-    <style is:global>
-      :root {
-        --foreground-rgb: 0, 0, 0;
-        --background-rgb: 255, 255, 255;
-      }
-      html {
-        font-family: "Cutive Mono", sans-serif;
-        color: rgb(var(--foreground-rgb));
-        background-color: rgb(var(--background-rgb));
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        height: 100%;
-      }
-      code {
-        font-family:
-          Menlo,
-          Monaco,
-          Lucida Console,
-          Liberation Mono,
-          DejaVu Sans Mono,
-          Bitstream Vera Sans Mono,
-          Courier New,
-          monospace;
-      }
-
-      [x-cloak] {
-        display: none !important;
-      }
-      .link-primary {
-        @apply relative block;
-        transition: all 125ms ease-in-out;
-        &::after {
-          content: "";
-          position: absolute;
-          width: 0;
-          left: -6px;
-          height: 100%;
-          background-color: theme("colors.black");
-          transition: all 100ms ease-in-out;
-          z-index: -1;
-        }
-        &:hover,
-        &:focus,
-        &.active {
-          @apply text-white;
-          &::after {
-            width: calc(100% + 12px);
-          }
-        }
-        &.disabled {
-          @apply opacity-50 pointer-events-none;
-        }
-      }
-      .heading-2xl {
-        @apply text-64 leading-1.1 -tracking-1pc;
-      }
-      .heading-xl {
-        @apply text-32 leading-1.2 tracking-0pc  md:text-56 md:leading-1.1 md:-tracking-1pc;
-      }
-      .heading-lg {
-        @apply text-32 leading-1.2 tracking-0pc  md:text-48 md:leading-1.1 md:-tracking-1pc;
-      }
-      .heading-md {
-        @apply text-32 leading-1.2 tracking-0pc  md:text-36;
-      }
-      .heading-sm {
-        @apply text-20 leading-1.2 tracking-0pc  md:text-24;
-      }
-      .para-lg {
-        @apply text-14 leading-1.5 -tracking-5pc;
-      }
-      .para-sm {
-        @apply text-12 leading-1.5 -tracking-5pc;
-      }
-    </style>
   </body>
 </html>
