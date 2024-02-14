@@ -8,7 +8,7 @@ export default (Alpine) => {
     // Global State
   });
 
-  Alpine.data("pageState", () => ({
+  Alpine.data("homePageState", () => ({
     activeProjectIndex: null,
     projectsActive: false,
     handleProjectHover(index) {

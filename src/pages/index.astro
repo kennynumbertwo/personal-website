@@ -11,9 +11,15 @@ const { selectWork } = data;
 ---
 
 <Layout title="Kenny Tye Professional Work">
-  <main class="flex h-full items-center relative" x-data="pageState()" x-cloak>
+  <main
+    class="flex h-full items-center relative"
+    x-data="homePageState()"
+    x-cloak
+  >
     <SelectWorkList data={selectWork} />
-    <div class="w-full h-full flex justify-center relative">
+    <div
+      class="w-full h-full flex justify-center relative overflow-y-scroll transition-colors duration-300 ease-in-out"
+    >
       {
         selectWork.map((project: any, index: number) => (
           <FeaturedProjectDetails project={project} index={index} />
@@ -23,5 +29,3 @@ const { selectWork } = data;
     <InfoFixed />
   </main>
 </Layout>
-
-<style></style>

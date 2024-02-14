@@ -3,6 +3,7 @@
   --background-rgb: 255, 255, 255;
   --font-mono: "Cutive Mono", monospace;
   --font-sans: "Lato", sans-serif;
+  --menu-width: 250px;
 }
 html {
   font-family: var(--font-sans);

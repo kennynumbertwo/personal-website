@@ -35,7 +35,7 @@ const { client, date, employer, contribution, type, technologies, images } =
 <div
   x-data={`{ index: ${index} }`}
   x-show="activeProjectIndex === index"
-  class="z-10 absolute w-full h-full max-w-[1000px] para-lg py-4 px-4"
+  class="absolute w-full max-w-[1000px] para-lg top-16 px-5"
   x-transition:enter="transition ease-in-out duration-500"
   x-transition:enter-start="opacity-0"
   x-transition:enter-end="opacity-100"
@@ -81,7 +81,7 @@ const { client, date, employer, contribution, type, technologies, images } =
       <h3 class="uppercase font-700 opacity-80 tracking-3pc">Type</h3>
       <p>{type}</p>
     </div>
-    <div class="col-span-3">
+    <div class="col-span-3 pb-5">
       <h3 class="uppercase font-700 opacity-80 tracking-3pc pb-1">Tech</h3>
       <ul class="flex flex-wrap gap-1">
         {

@@ -11,7 +11,9 @@ const removeTrailingSlash = (path: any) => path.replace(/\/$/, "");
 const pathWithoutTrailingSlash = removeTrailingSlash(currentPath);
 ---
 
-<nav class="fixed top-4 px-4 z-10">
+<nav
+  class="fixed top-0 px-4 z-10 border-b border-black/15 w-full bg-white/70 backdrop-blur-md py-3"
+>
   <ul class="flex gap-x-8">
     {
       menuItems.map((item) => (

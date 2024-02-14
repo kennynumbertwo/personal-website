@@ -13,9 +13,9 @@ const filteredProjects = data.filter((project: any) => {
 ---
 
 <Layout title="Kenny Tye - Work">
-  <main class="flex h-full max-w-screen pt-20 px-4" x-data="pageState()">
+  <main class="flex h-full max-w-screen pt-16 px-4">
     <div
-      class="grid grid-cols-6 gap-12"
+      class="grid grid-cols-6 gap-8"
       x-ref="projects"
       x-data={`{
           animateChildren() {
@@ -33,7 +33,7 @@ const filteredProjects = data.filter((project: any) => {
         filteredProjects.map((project: any) => {
           const image = project.images[0];
           return (
-            <a class="project-card group" href={`work/${project.slug.current}`}>
+            <a class="project-card group" href={project.url} target="_blank">
               <div class="relative overflow-hidden">
                 <Image
                   src={image.url}

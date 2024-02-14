@@ -37,7 +37,8 @@ const project = `
   images[]${asset},
 `;
 
-export const projectsQuery = `*[_type == "project"]{
+// order by date desc
+export const projectsQuery = `*[_type == "project"]  | order(date desc) {
   ${project}
 }`;
 
