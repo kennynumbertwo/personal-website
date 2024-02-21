@@ -1,21 +1,22 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import BracketHeader from "@/components/BracketHeader.astro";
+import "../styles/page-fonts.css";
 ---
 
 <Layout title="Kenny Tye - Contact">
-  <main
-    class="flex h-full justify-center items-center flex-col gap-y-10 relative max-h-screen max-w-screen overflow-hidden px-6"
-  >
-    <p class="text-18 text-center max-w-2xl font-500 leading-1.3 tracking-7pc">
-      I'm currently available for select freelance work. If you'd like to
-      connect, please get in touch.
-    </p>
-    <a
-      href="mailto:kennytye.dev@gmail.com"
-      target="_blank"
-      class="hover:underline">kennytye.dev@gmail.com</a
-    >
+  <main class="flex flex-col h-full relative overflow-y-scroll px-4 pt-25">
+    <div class="mx-auto w-full max-w-3xl">
+      <BracketHeader text="Contact" />
+      <div class="rte">
+        <p class="">I'm currently available for select freelance work.</p>
+        <p class="pb-10">If you'd like to connect, please get in touch.</p>
+      </div>
+      <a
+        href="mailto:kennytye.dev@gmail.com"
+        target="_blank"
+        class="z-10 hover:underline">kennytye.dev@gmail.com</a
+      >
+    </div>
   </main>
 </Layout>
-
-<style></style>

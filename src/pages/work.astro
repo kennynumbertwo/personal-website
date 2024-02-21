@@ -14,8 +14,9 @@ const filteredProjects = data.filter((project: any) => {
 
 <Layout title="Kenny Tye - Work">
   <main class="flex h-full max-w-screen pt-16 px-4">
+    <h1 class="sr-only">Work</h1>
     <div
-      class="grid grid-cols-6 gap-8"
+      class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-8"
       x-ref="projects"
       x-data={`{
           animateChildren() {

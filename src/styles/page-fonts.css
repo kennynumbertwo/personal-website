@@ -1,0 +1,71 @@
+.rte {
+  h2 {
+    font-size: 36px;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    margin-bottom: 32px;
+    @screen md {
+      font-size: 42px;
+    }
+  }
+  p:first-of-type {
+    margin-bottom: 24px;
+    letter-spacing: -0.03em;
+    font-size: 18px;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    opacity: 0.8;
+    @screen md {
+      font-size: 24px;
+    }
+  }
+
+  p {
+    margin-bottom: 12px;
+    letter-spacing: -0.03em;
+    font-size: 16px;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    font-weight: 300;
+    opacity: 0.8;
+    @screen md {
+      font-size: 20px;
+    }
+  }
+  a {
+    @apply relative inline-block;
+    transition: all 125ms ease-in-out;
+    &::before {
+      content: "";
+      position: absolute;
+      width: calc(100% + 4px);
+      left: -2px;
+      height: 100%;
+      background-color: #fdffbe;
+      transition: all 100ms ease-in-out;
+      z-index: -2;
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      width: calc(100% + 8px);
+      left: -4px;
+      height: 100%;
+      background-color: theme("colors.black");
+      transition: all 100ms ease-in-out;
+      z-index: -1;
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+    &:hover,
+    &:focus,
+    &.active {
+      @apply text-white;
+      &::after {
+        transform: scaleY(1);
+      }
+    }
+  }
+}

@@ -3,56 +3,66 @@ import { sanityClient } from "sanity:client";
 import Layout from "../layouts/Layout.astro";
 import { siteConfigQuery } from "@/lib/queries";
 import { PortableText } from "astro-portabletext";
+import BracketHeader from "@/components/BracketHeader.astro";
+import "../styles/page-fonts.css";
 
 const data = await sanityClient.fetch(siteConfigQuery);
 const { about } = data;
+
+const links = [
+  {
+    name: "GitHub",
+    url: "https://github.com/kennynumbertwo",
+  },
+  {
+    name: "LinkedIn",
+    url: "https://www.linkedin.com/in/kenny-tye-3559106b/",
+  },
+  {
+    name: "Email",
+    url: "mailto:kennytye.dev@gmail.com",
+  },
+];
 ---
 
 <Layout title="Kenny Tye - About">
   <main
-    class="flex h-full items-center relative max-h-screen max-w-screen overflow-hidden"
+    class="flex flex-col h-full relative overflow-y-scroll px-4 pt-20 md:pt-25"
   >
-    <div class="rte mx-auto max-w-3xl">
-      <PortableText value={about} />
+    <div class="mx-auto w-full max-w-3xl pb-20">
+      <div class="rte pb-10">
+        <BracketHeader text="About" />
+        <PortableText value={about} />
+      </div>
+      <h2 class="pb-3 text-20 tracking-6pc font-500">Links</h2>
+      <ul class="flex flex-col gap-y-1 pb-10">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.url}
+                class="hover:underline whitespace-nowrap text-16 leading-none -tracking-2pc font-mono"
+                target="_blank"
+              >
+                {link.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="text-16 tracking-4pc">
+        This site was made with
+        <a
+          href="https://astro.build/"
+          target="_blank"
+          class="link-highlight z-10">Astro</a
+        > and
+        <a
+          href="https://astro.build/"
+          target="_blank"
+          class="link-highlight z-10">Alpine JS</a
+        >
+      </p>
     </div>
   </main>
 </Layout>
-
-<style is:global>
-  .rte {
-    p {
-      margin-bottom: 12px;
-      letter-spacing: -0.03em;
-      font-size: 18px;
-      line-height: 1.3;
-      letter-spacing: 0.07em;
-      font-weight: 500;
-      opacity: 0.8;
-    }
-    a {
-      text-decoration: underline;
-      @apply relative inline-block;
-      transition: all 125ms ease-in-out;
-      &::after {
-        content: "";
-        position: absolute;
-        width: calc(100% + 12px);
-        left: -6px;
-        height: 100%;
-        background-color: theme("colors.black");
-        transition: all 100ms ease-in-out;
-        z-index: -1;
-        transform: scaleY(0);
-        transform-origin: bottom;
-      }
-      &:hover,
-      &:focus,
-      &.active {
-        @apply text-white;
-        &::after {
-          transform: scaleY(1);
-        }
-      }
-    }
-  }
-</style>
