@@ -50,7 +50,7 @@ const { client, date, employer, contribution, type, technologies, images } =
         images.map((image) => (
           <div class="flex-1 w-full">
             <Image
-              src={image.url}
+              src={`${image.url}?h=510&auto=format`}
               alt={image.alt}
               width={image.dimensions.width}
               height={image.dimensions.height}
