@@ -25,6 +25,8 @@
     "@types/alpinejs": "^3.13.6",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
+    "@vercel/analytics": "^1.2.2",
+    "@vercel/speed-insights": "^1.0.10",
     "alpinejs": "^3.13.5",
     "astro": "^4.3.7",
     "astro-portabletext": "^0.9.6",

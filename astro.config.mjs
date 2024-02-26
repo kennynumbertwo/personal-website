@@ -26,5 +26,7 @@ export default defineConfig({
     }),
   ],
   site: SITE.url,
-  adapter: vercel(),
+  adapter: vercel({
+    webAnalytics: { enabled: true },
+  }),
 });
