@@ -46,18 +46,17 @@ const { client, date, employer, contribution, type, technologies, images } =
 >
   <div class="flex gap-x-2 pb-4">
     {
-      images?.length >= 1 &&
-        images.map((image) => (
-          <div class="flex-1 w-full">
-            <Image
-              src={`${image.url}?h=510&auto=format`}
-              alt={image.alt}
-              width={image.dimensions.width}
-              height={image.dimensions.height}
-              class="w-full h-full object-cover rounded-lg shadow-md"
-            />
-          </div>
-        ))
+      images?.length >= 1 && (
+        <div class="flex-1 w-full">
+          <Image
+            src={`${images[images.length - 1].url}?h=700&auto=format`}
+            alt={images[images.length - 1].alt}
+            width={images[images.length - 1].dimensions.width}
+            height={images[images.length - 1].dimensions.height}
+            class="w-full h-full object-cover rounded-lg shadow-md"
+          />
+        </div>
+      )
     }
   </div>
   <div class="pb-6 uppercase">
