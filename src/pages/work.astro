@@ -12,49 +12,58 @@ const filteredProjects = data.filter((project: any) => {
 });
 ---
 
-<Layout title="Kenny Tye - Work">
-  <main class="flex h-full max-w-screen pt-16 px-4">
-    <h1 class="sr-only">Work</h1>
-    <div
-      class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-8"
-      x-ref="projects"
-      x-data={`{
-          animateChildren() {
-            const children = this.$refs.projects.children;
-            Array.from(children).forEach((child, index) => {
-              child.style.animationDelay = \`\${index * 65}ms\`;
-              child.classList.add('animate__fade-in');
-            });
-          }
+<Layout
+  title="Kenny Tye - Work"
+  description="Listing of Kenny Tye's professional web development work."
+>
+  <main class="flex h-full max-w-screen overflow-y-scroll">
+    <div class="pt-14 md:pt-15 px-2 md:px-3">
+      <h1 class="sr-only">Work</h1>
+      <div
+        class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 pb-10"
+        x-ref="projects"
+        x-data={`{
+              animateChildren() {
+                const children = this.$refs.projects.children;
+                Array.from(children).forEach((child, index) => {
+                  child.style.animationDelay = \`\${index * 65}ms\`;
+                  child.classList.add('animate__fade-in');
+                });
+              }
+            }
+          `}
+        x-init="animateChildren()"
+      >
+        {
+          filteredProjects.map((project: any) => {
+            const image = project.images[0];
+            return (
+              <a
+                class="project-card group p-2 md:p-3"
+                href={project.url}
+                target="_blank"
+              >
+                <div class="relative overflow-hidden">
+                  <Image
+                    src={image.url}
+                    alt={project.title}
+                    width={image.dimensions.width}
+                    height={image.dimensions.height}
+                    class="rounded-md inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
+                  />
+                </div>
+                <div class="pt-2 justify-between">
+                  <h2 class="font-700 opacity-80 tracking-2pc">
+                    {project.title}
+                  </h2>
+                  <p class="">{project.type}</p>
+                  <p class="">{project.date}</p>
+                </div>
+              </a>
+            );
+          })
         }
-      `}
-      x-init="animateChildren()"
-    >
-      {
-        filteredProjects.map((project: any) => {
-          const image = project.images[0];
-          return (
-            <a class="project-card group" href={project.url} target="_blank">
-              <div class="relative overflow-hidden">
-                <Image
-                  src={image.url}
-                  alt={project.title}
-                  width={image.dimensions.width}
-                  height={image.dimensions.height}
-                  class="rounded-md inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
-                />
-              </div>
-              <div class="pt-2 justify-between">
-                <h2 class="font-700 opacity-80 tracking-2pc">
-                  {project.title}
-                </h2>
-                <p class="">{project.type}</p>
-                <p class="">{project.date}</p>
-              </div>
-            </a>
-          );
-        })
-      }
+      </div>
     </div>
   </main>
 </Layout>
@@ -62,14 +71,6 @@ const filteredProjects = data.filter((project: any) => {
 <style>
   .project-card {
     opacity: 0;
-  }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
   .animate__fade-in {
     animation: fadeIn 400ms ease forwards;

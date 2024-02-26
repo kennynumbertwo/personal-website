@@ -117,3 +117,27 @@ code {
 .para-sm {
   @apply text-12 leading-1.5 -tracking-2pc;
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate__fade-in-up {
+  animation: fadeInUp 400ms cubic-bezier(0.59, 0.19, 0.29, 0.99) forwards;
+}

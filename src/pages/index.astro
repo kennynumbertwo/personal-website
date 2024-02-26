@@ -5,12 +5,13 @@ import Layout from "../layouts/Layout.astro";
 import SelectWorkList from "../components/SelectWorkList.astro";
 import FeaturedProjectDetails from "../components/FeaturedProjectDetails.astro";
 import InfoFixed from "../components/InfoFixed.astro";
+import { SITE } from "../config";
 
 const data = await sanityClient.fetch(siteConfigQuery);
 const { selectWork } = data;
 ---
 
-<Layout title="Kenny Tye Professional Work">
+<Layout title={SITE.title} description={SITE.description}>
   <main
     class="flex h-full items-center relative"
     x-data="homePageState()"
@@ -19,7 +20,7 @@ const { selectWork } = data;
     <h1 class="sr-only">Home</h1>
     <SelectWorkList data={selectWork} />
     <div
-      class="w-full h-full flex justify-center relative overflow-y-scroll transition-colors duration-300 ease-in-out"
+      class="w-full h-full hidden md:flex justify-center relative overflow-y-scroll transition-colors duration-300 ease-in-out"
     >
       {
         selectWork.map((project: any, index: number) => (

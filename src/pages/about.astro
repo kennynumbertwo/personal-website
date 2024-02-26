@@ -23,25 +23,50 @@ const links = [
     url: "mailto:kennytye.dev@gmail.com",
   },
 ];
+
+const title = "About Kenny Tye";
+const description =
+  "About Me: I'm Kenny, a frontend developer from Los Angeles. I currently work for Bondfire Inc. as a software engineer building brand-focused e-commerce and marketing experiences.";
 ---
 
-<Layout title="Kenny Tye - About">
+<Layout title={title} description={description}>
   <main
     class="flex flex-col h-full relative overflow-y-scroll px-4 pt-20 md:pt-25"
+    x-data={`{
+      animate(el) {
+        const elements = el.querySelectorAll('.animate');
+        Array.from(elements).forEach((element, index) => {
+          element.style.animationDelay = \`\${index * 65}ms\`;
+          element.classList.add('animate__fade-in-up');
+        });
+      },
+      animateChildren(el) {
+        const children = el.children;
+        Array.from(children).forEach((child, index) => {
+          child.style.animationDelay = \`\${index * 65}ms\`;
+          child.classList.add('animate__fade-in-up');
+        });
+      }
+    }
+  `}
+    x-init="animate($el)"
   >
-    <div class="mx-auto w-full max-w-3xl pb-20">
-      <div class="rte pb-10">
-        <BracketHeader text="About" />
+    <div
+      class="mx-auto w-full max-w-2xl 2xl:max-w-3xl pb-20 animate opacity-0"
+      style="fadeIn"
+    >
+      <BracketHeader text="About" />
+      <div class="rte pb-10" x-init="animateChildren($el)">
         <PortableText value={about} />
       </div>
       <h2 class="pb-3 text-20 tracking-6pc font-500">Links</h2>
-      <ul class="flex flex-col gap-y-1 pb-10">
+      <ul class="flex flex-col pb-10 animate" x-init="animateChildren($el)">
         {
           links.map((link) => (
-            <li>
+            <li class="opacity-0">
               <a
                 href={link.url}
-                class="hover:underline whitespace-nowrap text-16 leading-none -tracking-2pc font-mono"
+                class="hover:underline whitespace-nowrap text-14 leading-none -tracking-2pc font-mono"
                 target="_blank"
               >
                 {link.name}
@@ -50,17 +75,21 @@ const links = [
           ))
         }
       </ul>
-      <p class="text-16 tracking-4pc">
+      <p class="text-16 tracking-4pc animate">
         This site was made with
         <a
           href="https://astro.build/"
           target="_blank"
           class="link-highlight z-10">Astro</a
-        > and
+        >,
         <a
-          href="https://astro.build/"
+          href="https://alpinejs.dev/"
           target="_blank"
           class="link-highlight z-10">Alpine JS</a
+        >, and <a
+          href="https://www.sanity.io/"
+          target="_blank"
+          class="link-highlight z-10">Sanity</a
         >
       </p>
     </div>

@@ -3,18 +3,31 @@ const { data } = Astro.props;
 ---
 
 <ul
-  class="px-4 z-10"
+  class="px-4 z-10 hidden md:block"
   style={{ minWidth: "var(--menu-width)" }}
   @mouseenter="projectsActive = true"
+  x-data={`{
+    animateChildren() {
+      const children = this.$refs.list.children;
+      Array.from(children).forEach((child, index) => {
+        child.style.animationDelay = \`\${index * 65}ms\`;
+        child.classList.add('animate__fade-in');
+      });
+    }
+  }
+`}
+  x-init="animateChildren()"
+  x-ref="list"
 >
-  <h2 class="pb-2 text-14 uppercase tracking-4pc font-700 opacity-80">
+  <h2 class="pb-2 text-14 uppercase tracking-4pc font-700 opacity-0">
     Featured Work
   </h2>
   {
     data.map((item: any, index: number) => (
-      <li class="">
+      <li class="opacity-0">
         <button
           class="text-left whitespace-nowrap text-14 leading-none -tracking-2pc font-mono hover:italic"
+          x-bind:class={`{ 'italic': activeProjectIndex === ${index} }`}
           x-on:click={`handleProjectHover(${index})`}
           x-on:keydown.enter={`handleProjectHover(${index})`}
         >
@@ -24,3 +37,9 @@ const { data } = Astro.props;
     ))
   }
 </ul>
+
+<style>
+  .animate__fade-in {
+    animation: fadeInUp 200ms cubic-bezier(0.59, 0.19, 0.29, 0.99) forwards;
+  }
+</style>

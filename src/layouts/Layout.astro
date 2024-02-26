@@ -1,28 +1,31 @@
 ---
 import { ViewTransitions } from "astro:transitions";
-import MainNav from "../components/MainNav.astro";
+import BaseHead from "@/components/BaseHead.astro";
+import MainNav from "@/components/MainNav.astro";
 import OrbContainer from "@/components/OrbContainer.astro";
-import "../styles/base.css";
 import "@fontsource/cutive-mono";
 import "@fontsource/lato/300.css";
 import "@fontsource/lato/400.css";
 import "@fontsource/lato/700.css";
-interface Props {
-  title: string;
-}
 
-const { title } = Astro.props;
+type Props = {
+  title: string;
+  description: string;
+  frontmatter?: {
+    title: string;
+    description: string;
+  };
+};
+
+const { frontmatter } = Astro.props;
+const title = frontmatter?.title || Astro.props.title;
+const description = frontmatter?.description || Astro.props.description;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="description" content="Astro description" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <BaseHead title={title} description={description} />
     <ViewTransitions />
   </head>
   <body class="max-h-screen max-w-screen overflow-hidden">

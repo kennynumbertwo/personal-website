@@ -4,18 +4,40 @@ import BracketHeader from "@/components/BracketHeader.astro";
 import "../styles/page-fonts.css";
 ---
 
-<Layout title="Kenny Tye - Contact">
-  <main class="flex flex-col h-full relative overflow-y-scroll px-4 pt-25">
-    <div class="mx-auto w-full max-w-3xl">
+<Layout
+  title="Kenny Tye - Contact"
+  description="Contact information for Kenny Tye"
+>
+  <main
+    class="flex flex-col h-full relative overflow-y-scroll px-4 pt-20 md:pt-25"
+    x-data={`{
+      animate(el) {
+        const elements = el.querySelectorAll('.animate');
+        Array.from(elements).forEach((element, index) => {
+          element.style.animationDelay = \`\${index * 65}ms\`;
+          element.classList.add('animate__fade-in-up');
+        });
+      }
+    }
+  `}
+    x-init="animate($el)"
+  >
+    <div class="mx-auto w-full max-w-2xl 2xl:max-w-3xl animate">
       <BracketHeader text="Contact" />
       <div class="rte">
-        <p class="">I'm currently available for select freelance work.</p>
-        <p class="pb-10">If you'd like to connect, please get in touch.</p>
+        <p class="animate">
+          I'm currently available for select freelance work.
+        </p>
+        <p class="pb-10 animate">
+          If you'd like to connect, please get in touch.
+        </p>
       </div>
       <a
         href="mailto:kennytye.dev@gmail.com"
         target="_blank"
-        class="z-10 hover:underline">kennytye.dev@gmail.com</a
+        class="z-10 hover:underline opacity-0 block"
+        style="animation: fadeInUp 400ms cubic-bezier(0.59, 0.19, 0.29, 0.99) forwards 300ms"
+        >kennytye.dev@gmail.com</a
       >
     </div>
   </main>
