@@ -45,7 +45,8 @@ const filteredProjects = data.filter((project: any) => {
               >
                 <div class="relative overflow-hidden">
                   <Image
-                    src={`${image.url}?h=200&auto=format`}
+                    loading={"eager"}
+                    src={`${image.url}?h=160&auto=format`}
                     alt={project.title}
                     width={image.dimensions.width}
                     height={image.dimensions.height}
