@@ -43,14 +43,14 @@ const filteredProjects = data.filter((project: any) => {
                 href={project.url}
                 target="_blank"
               >
-                <div class="relative overflow-hidden">
+                <div class="relative overflow-hidden aspect-video rounded-md">
                   <Image
                     loading={"eager"}
                     src={`${image.url}?h=160&auto=format`}
                     alt={project.title}
                     width={image.dimensions.width}
                     height={image.dimensions.height}
-                    class="rounded-md inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
+                    class="inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
                   />
                 </div>
                 <div class="pt-2 justify-between">
