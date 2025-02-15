@@ -55,16 +55,16 @@ export default defineType({
       options: {
         list: [
           {
-            title: "Ecommerce / Shopify Theme",
-            value: "Ecommerce / Shopify Theme",
+            title: "Shopify Theme",
+            value: "Shopify Theme",
           },
           {
             title: "Marketing Site",
             value: "Marketing Site",
           },
           {
-            title: "Web Portal",
-            value: "Web Portal",
+            title: "Web App",
+            value: "Web App",
           },
         ],
       },
