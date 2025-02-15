@@ -107,6 +107,11 @@ export default defineType({
         }),
       ],
     }),
+    defineField({
+      name: "hideFromWork",
+      title: "Hide from Work",
+      type: "boolean",
+    }),
   ],
 
   preview: {

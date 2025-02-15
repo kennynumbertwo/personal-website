@@ -6,7 +6,7 @@ import { projectsQuery } from "@/lib/queries";
 
 const data = await sanityClient.fetch(projectsQuery);
 const filteredProjects = data.filter((project: any) => {
-  if (project.images?.length > 0) {
+  if (project.images?.length > 0 && !project.hideFromWork) {
     return project;
   }
 });
@@ -58,7 +58,7 @@ const filteredProjects = data.filter((project: any) => {
                     {project.title}
                   </h2>
                   <p class="">{project.type}</p>
-                  <p class="">{project.date}</p>
+                  <p class="">{project.employer.name}</p>
                 </div>
               </a>
             );

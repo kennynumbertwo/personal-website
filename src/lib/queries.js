@@ -35,6 +35,7 @@ const project = `
   date,
   description,
   images[]${asset},
+  hideFromWork,
 `;
 
 // order by date desc
