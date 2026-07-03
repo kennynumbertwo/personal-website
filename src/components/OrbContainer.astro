@@ -1,75 +1,415 @@
+<canvas
+  id="orb-canvas"
+  class="orb-canvas"
+  aria-hidden="true"
+  transition:persist></canvas>
 <div
-  class="w-full h-full bg-white/60 absolute inset-0 backdrop-blur-lg"
+  class="w-full h-full bg-white/60 absolute inset-0"
   transition:persist
 >
 </div>
-<div
-  x-data="orbContainer"
-  class=""
-  x-init="$watch('orbCount', value => generateOrb())"
-  transition:persist
->
-  <template x-for="orb in orbs">
-    <div
-      x-data="orb"
-      class="orb animate"
-      :style="`top: ${orbPosY}px; left: ${orbPosX}px; width: ${orbSize}px; height: ${orbSize}px; background-color: ${orbColor}; opacity: ${orbOpacity}`"
-      :key="orb.id"
-      x-init="$watch('timer', value => updateOrb())"
-    >
-    </div>
-  </template>
-</div>
-
-<script is:inline>
-  document.addEventListener("astro:before-preparation", () => {
-    const orbs = document.querySelectorAll(".orb");
-    orbs.forEach((orb) => {
-      orb.classList.remove("animate");
-    });
-  });
-</script>
 
 <style>
-  .orb {
-    border-radius: 50%;
-    position: absolute;
+  .orb-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     z-index: -1;
-    &.animate {
-      animation: 2500ms ease-in-out orbIn;
-    }
-  }
-  @keyframes orbIn {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-  .userOrb {
-    border-radius: 50%;
-    position: absolute;
-    z-index: -1;
-    animation: 200ms ease-in-out userOrbIn;
-  }
-  @keyframes userOrbIn {
-    0% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 0.3;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-  @keyframes animateOut {
-    0% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
+    pointer-events: none;
   }
 </style>
+
+<script>
+  // Single-canvas orb background. One requestAnimationFrame loop draws every orb
+  // as a soft radial gradient (blur baked into the fill), replacing the old
+  // DOM-div-per-orb Alpine system. Delta-time driven, DPR-aware, pauses when the
+  // tab is hidden, and respects prefers-reduced-motion.
+
+  const CONFIG = {
+    colors: [
+      "rgba(7, 31, 69, 0.5)",
+      "rgba(55, 88, 102, 0.5)",
+      "rgba(55, 59, 102, 0.5)",
+      "rgba(16, 80, 58, 0.5)",
+      "rgba(154, 72, 43, 0.3)",
+      "rgba(213, 111, 79, 0.2)",
+      "rgba(79, 213, 95, 0.2)",
+      "rgba(143, 57, 130, 0.3)",
+    ],
+    spawnIntervalMs: 2500,
+    maxOrbs: 15,
+    seedCount: 5, // orbs present on first paint so the field isn't empty
+    reducedMotionCount: 5,
+    // Lifecycle (perceived durations); envelope = fade in -> hold -> fade out.
+    fadeInMs: 2500,
+    holdMs: 8000,
+    fadeOutMs: 2500,
+    speedMin: 30, // px/s
+    speedMax: 100, // px/s
+    growthMax: 15, // px/s radius growth while young
+    maxDt: 0.05, // clamp delta time so a pause never makes orbs jump
+    // Fill shape: a solid-ish core that holds its color out to `coreStop` of the
+    // radius before fading to transparent — higher = more defined/less blurred.
+    alphaBoost: 1.6, // multiply each orb's base center alpha
+    alphaMax: 0.85, // cap so boosted orbs never go fully opaque
+    // Per-orb softness: each orb picks a core hold-fraction in this range.
+    // Low = soft/blurry, high = sharp/defined.
+    coreStopMin: 0.15,
+    coreStopMax: 0.7,
+    // Organic wandering: heading slowly curves (turn) with a gentle swing (wander)
+    // so orbs meander instead of moving in straight lines. All in radians / rad-per-s.
+    turnRateMax: 0.25, // baseline curl, rad/s (random sign per orb)
+    wanderAmp: 0.5, // extra heading swing amplitude, rad/s
+    wanderFreqMin: 0.2, // swing rate, rad/s
+    wanderFreqMax: 0.7,
+    // Color blending where orbs overlap. "lighter" = luminous additive mixing;
+    // try "lighten", "screen", or "source-over" (no blend) to taste.
+    blendMode: "lighter" as GlobalCompositeOperation,
+    // Breathing pulse: each orb gently oscillates size + opacity on its own cycle.
+    pulseAmp: 0.08, // radius +/- fraction
+    pulseOpacityAmp: 0.12, // opacity +/- fraction
+    pulseFreqMin: 0.5, // rad/s (period ~9-13s)
+    pulseFreqMax: 0.7,
+    // Cursor proximity: the mouse imparts an impulse (kick) to an orb's velocity
+    // as it nears, so the orb coasts off in that direction and gradually rejoins
+    // its drift (disabled under reduced motion). Negative pushForce = attraction.
+    influenceRadius: 260, // px — how close the cursor must be to affect an orb
+    pushForce: 1000, // px/s^2 — impulse strength at the cursor
+    friction: 1.4, // per-second velocity decay (lower = longer coast)
+    maxPushSpeed: 700, // px/s — clamp on push velocity
+    pushSquish: 0.18, // max shrink fraction when hit; eases back as it slows
+    pushBlur: 0.55, // max softening of the core when hit (0-1); eases back as it slows
+    squishRefSpeed: 220, // push speed at which squish maxes out (lower = more sensitive)
+    respondMin: 0.6, // per-orb responsiveness range (variety)
+    respondMax: 1,
+  };
+
+  type RGB = { r: number; g: number; b: number; a: number };
+
+  type Orb = {
+    x: number;
+    y: number;
+    r: number;
+    speed: number; // px/s
+    heading: number; // radians, curves over time
+    turn: number; // rad/s baseline curl
+    wanderFreq: number; // rad/s swing rate
+    wanderPhase: number;
+    growth: number;
+    core: number; // fraction of radius the core color holds (per-orb softness)
+    pulseFreq: number; // rad/s breathing rate
+    pulsePhase: number;
+    respond: number; // per-orb responsiveness to the cursor
+    vx: number; // cursor-push velocity (coasts, decays via friction)
+    vy: number;
+    age: number; // ms
+    life: number; // ms (total: fadeIn + hold + fadeOut)
+    color: RGB;
+  };
+
+  // Parse "rgba(r, g, b, a)" once into numeric channels.
+  const PALETTE: RGB[] = CONFIG.colors.map((c) => {
+    const m = c.match(/rgba?\(([^)]+)\)/);
+    const [r, g, b, a] = (m ? m[1] : "0,0,0,1")
+      .split(",")
+      .map((n) => parseFloat(n.trim()));
+    return { r, g, b, a: a === undefined ? 1 : a };
+  });
+
+  function rand(min: number, max: number) {
+    return min + Math.random() * (max - min);
+  }
+
+  function pick<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function sizeRange() {
+    // Diameters, matching the old getSize() feel; radius = diameter / 2.
+    return window.innerWidth < 768 ? { min: 50, max: 250 } : { min: 200, max: 500 };
+  }
+
+  function makeOrb(): Orb {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const { min, max } = sizeRange();
+    return {
+      x: rand(0, w),
+      y: rand(0, h),
+      r: rand(min, max) / 2,
+      speed: rand(CONFIG.speedMin, CONFIG.speedMax),
+      heading: Math.random() * Math.PI * 2,
+      turn: rand(-CONFIG.turnRateMax, CONFIG.turnRateMax),
+      wanderFreq: rand(CONFIG.wanderFreqMin, CONFIG.wanderFreqMax),
+      wanderPhase: Math.random() * Math.PI * 2,
+      growth: rand(0, CONFIG.growthMax),
+      core: rand(CONFIG.coreStopMin, CONFIG.coreStopMax),
+      pulseFreq: rand(CONFIG.pulseFreqMin, CONFIG.pulseFreqMax),
+      pulsePhase: Math.random() * Math.PI * 2,
+      respond: rand(CONFIG.respondMin, CONFIG.respondMax),
+      vx: 0,
+      vy: 0,
+      age: 0,
+      life: CONFIG.fadeInMs + CONFIG.holdMs + CONFIG.fadeOutMs,
+      color: pick(PALETTE),
+    };
+  }
+
+  // Opacity envelope in [0, 1] from the orb's age.
+  function envelope(o: Orb) {
+    const { fadeInMs, holdMs } = CONFIG;
+    if (o.age < fadeInMs) return o.age / fadeInMs;
+    if (o.age < fadeInMs + holdMs) return 1;
+    return Math.max(0, 1 - (o.age - fadeInMs - holdMs) / CONFIG.fadeOutMs);
+  }
+
+  const canvas = document.getElementById("orb-canvas") as HTMLCanvasElement | null;
+  const ctx = canvas?.getContext("2d") ?? null;
+
+  if (canvas && ctx) {
+    let orbs: Orb[] = [];
+    let width = 0;
+    let height = 0;
+    let rafId = 0;
+    let lastTime = 0;
+    let spawnAccum = 0;
+    let running = false;
+    let resizeQueued = false;
+
+    // Cursor position in CSS pixels; `active` is false when the cursor is outside
+    // the window so orbs relax back to their drift.
+    const pointer = { x: 0, y: 0, active: false };
+
+    const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas!.width = Math.round(width * dpr);
+      canvas!.height = Math.round(height * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawOrb(o: Orb) {
+      // Breathing pulse modulates radius + opacity on the orb's own cycle.
+      const t = o.age / 1000;
+      const pulse = Math.sin(t * o.pulseFreq + o.pulsePhase);
+      // Recoil squish: shrink in proportion to how hard it was just hit. The push
+      // velocity decays via friction, so the orb eases back to full size on its own.
+      // sqrt ease-out: the dent ramps in fast on the first bit of push, then saturates.
+      const hit = Math.sqrt(Math.min(Math.hypot(o.vx, o.vy) / CONFIG.squishRefSpeed, 1));
+      const rr = o.r * (1 + pulse * CONFIG.pulseAmp) * (1 - hit * CONFIG.pushSquish);
+      const env = envelope(o) * (1 + pulse * CONFIG.pulseOpacityAmp);
+      const a = Math.min(o.color.a * CONFIG.alphaBoost, CONFIG.alphaMax) * env;
+      if (a <= 0 || rr <= 0) return;
+
+      const px = o.x;
+      const py = o.y;
+      // Being hit also softens the core (blurrier edge), easing back as it slows.
+      const core = o.core * (1 - hit * CONFIG.pushBlur);
+      const grad = ctx!.createRadialGradient(px, py, 0, px, py, rr);
+      const { r, g, b } = o.color;
+      grad.addColorStop(0, `rgba(${r},${g},${b},${a})`);
+      grad.addColorStop(core, `rgba(${r},${g},${b},${a})`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx!.fillStyle = grad;
+      ctx!.beginPath();
+      ctx!.arc(px, py, rr, 0, Math.PI * 2);
+      ctx!.fill();
+    }
+
+    function render() {
+      ctx!.globalCompositeOperation = "source-over";
+      ctx!.clearRect(0, 0, width, height);
+      ctx!.globalCompositeOperation = CONFIG.blendMode;
+      for (const o of orbs) drawOrb(o);
+      ctx!.globalCompositeOperation = "source-over";
+    }
+
+    function step(now: number) {
+      if (!running) return;
+      const dt = Math.min((now - lastTime) / 1000, CONFIG.maxDt);
+      lastTime = now;
+
+      // Spawn cadence.
+      spawnAccum += dt * 1000;
+      if (spawnAccum >= CONFIG.spawnIntervalMs) {
+        spawnAccum -= CONFIG.spawnIntervalMs;
+        orbs.push(makeOrb());
+        if (orbs.length > CONFIG.maxOrbs) orbs.shift();
+      }
+
+      // Advance.
+      for (const o of orbs) {
+        o.age += dt * 1000;
+        // Organic wandering: curl the heading with a gentle swing, then move.
+        const t = o.age / 1000;
+        o.heading +=
+          (o.turn + Math.sin(t * o.wanderFreq + o.wanderPhase) * CONFIG.wanderAmp) *
+          dt;
+        o.x += Math.cos(o.heading) * o.speed * dt;
+        o.y += Math.sin(o.heading) * o.speed * dt;
+
+        // Cursor proximity: kick the orb's velocity away from the cursor, stronger
+        // the nearer it is. Friction then lets it coast and rejoin its drift.
+        if (pointer.active) {
+          const dx = o.x - pointer.x;
+          const dy = o.y - pointer.y;
+          const dist = Math.hypot(dx, dy) || 0.0001;
+          if (dist < CONFIG.influenceRadius) {
+            const f = 1 - dist / CONFIG.influenceRadius; // 0..1, nearer = larger
+            const accel = f * f * CONFIG.pushForce * o.respond;
+            o.vx += (dx / dist) * accel * dt;
+            o.vy += (dy / dist) * accel * dt;
+          }
+        }
+        const decay = Math.exp(-CONFIG.friction * dt);
+        o.vx *= decay;
+        o.vy *= decay;
+        const sp = Math.hypot(o.vx, o.vy);
+        if (sp > CONFIG.maxPushSpeed) {
+          const k = CONFIG.maxPushSpeed / sp;
+          o.vx *= k;
+          o.vy *= k;
+        }
+        o.x += o.vx * dt;
+        o.y += o.vy * dt;
+
+        const fading = o.age > CONFIG.fadeInMs + CONFIG.holdMs;
+        if (fading) {
+          o.r *= 1 - 0.15 * dt; // gentle shrink while fading out
+        } else {
+          o.r += o.growth * dt; // grow while young
+        }
+      }
+      // Remove fully-faded orbs.
+      orbs = orbs.filter((o) => o.age < o.life);
+
+      render();
+      rafId = requestAnimationFrame(step);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      lastTime = performance.now();
+      rafId = requestAnimationFrame(step);
+    }
+
+    function stop() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+
+    function renderStatic() {
+      // A single frame of a few mid-life orbs, no animation.
+      resizeCanvas();
+      orbs = Array.from({ length: CONFIG.reducedMotionCount }, () => {
+        const o = makeOrb();
+        o.age = CONFIG.fadeInMs + CONFIG.holdMs / 2; // fully faded in, not fading
+        return o;
+      });
+      render();
+    }
+
+    function seed() {
+      orbs = Array.from({ length: CONFIG.seedCount }, () => {
+        const o = makeOrb();
+        // Stagger ages across the visible (non-fade-out) span.
+        o.age = rand(0, CONFIG.fadeInMs + CONFIG.holdMs);
+        return o;
+      });
+    }
+
+    function onResize() {
+      if (resizeQueued) return;
+      resizeQueued = true;
+      requestAnimationFrame(() => {
+        resizeQueued = false;
+        if (reduceMq.matches) {
+          renderStatic();
+        } else {
+          resizeCanvas();
+          render();
+        }
+      });
+    }
+
+    function onPointerMove(e: PointerEvent) {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = true;
+    }
+
+    function onPointerLeave() {
+      // Cursor left the window — let orbs relax back to their drift.
+      pointer.active = false;
+    }
+
+    function onVisibility() {
+      if (reduceMq.matches) return;
+      if (document.hidden) {
+        stop();
+      } else {
+        // Reset the delta clock so orbs don't jump after being hidden.
+        lastTime = performance.now();
+        start();
+      }
+    }
+
+    function onReduceChange() {
+      if (reduceMq.matches) {
+        window.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerleave", onPointerLeave);
+        pointer.active = false;
+        stop();
+        renderStatic();
+      } else {
+        window.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerleave", onPointerLeave);
+        resizeCanvas();
+        seed();
+        start();
+      }
+    }
+
+    function init() {
+      resizeCanvas();
+      if (reduceMq.matches) {
+        renderStatic();
+      } else {
+        seed();
+        start();
+      }
+      window.addEventListener("resize", onResize);
+      document.addEventListener("visibilitychange", onVisibility);
+      reduceMq.addEventListener("change", onReduceChange);
+      if (!reduceMq.matches) {
+        window.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerleave", onPointerLeave);
+      }
+    }
+
+    function teardown() {
+      stop();
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
+      reduceMq.removeEventListener("change", onReduceChange);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerleave", onPointerLeave);
+    }
+
+    // Start once. The canvas + this script persist across View Transitions
+    // (transition:persist), so guard against a second loop being created.
+    const w = window as unknown as { __orbEngineStarted?: boolean };
+    if (!w.__orbEngineStarted) {
+      w.__orbEngineStarted = true;
+      init();
+      // Clean up only on a real page teardown, not on SPA navigations.
+      window.addEventListener("pagehide", teardown, { once: true });
+    }
+  }
+</script>
