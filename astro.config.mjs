@@ -1,7 +1,6 @@
 import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import alpine from "@astrojs/alpinejs";
-import react from "@astrojs/react";
 import { sanityIntegration } from "@sanity/astro";
 import { SITE } from "./src/config";
 
@@ -12,7 +11,6 @@ export default defineConfig({
   output: "hybrid",
   integrations: [
     tailwind(),
-    react(),
     alpine({
       entrypoint: "/src/entrypoint",
     }),
