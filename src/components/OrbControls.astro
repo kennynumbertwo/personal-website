@@ -182,8 +182,8 @@
     border-radius: 999px;
     background: radial-gradient(
       circle at 50% 45%,
-      rgba(46, 92, 120, 0.95) 0%,
-      rgba(96, 78, 150, 0.6) 46%,
+      rgba(96, 156, 200, 0.85) 0%,
+      rgba(160, 128, 210, 0.5) 46%,
       rgba(255, 255, 255, 0) 72%
     );
     animation: orb-breathe 4.5s ease-in-out infinite;
@@ -365,8 +365,10 @@
     cursor: pointer;
     transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
   }
-  .orb-seg__btn:hover {
+  /* Hover only affects inactive buttons — the active one keeps its white text. */
+  .orb-seg__btn:not(.orb-seg__btn--on):hover {
     color: var(--ink);
+    border-color: rgba(0, 0, 0, 0.28);
   }
   .orb-seg__btn--on {
     background: var(--ink);
