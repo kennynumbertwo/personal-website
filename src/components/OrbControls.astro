@@ -380,9 +380,10 @@
 
   /* Palette swatches */
   .orb-swatches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(8, 22px);
+    justify-content: space-between;
+    row-gap: 10px;
   }
   .orb-swatch {
     width: 22px;
