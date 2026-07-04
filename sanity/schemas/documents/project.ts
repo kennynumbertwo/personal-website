@@ -66,6 +66,10 @@ export default defineType({
             title: "Web App",
             value: "Web App",
           },
+          {
+            title: "Next.js + Sanity",
+            value: "Next.js + Sanity",
+          },
         ],
       },
     }),
