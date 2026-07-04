@@ -38,6 +38,7 @@ export const orbControlGroups = [
     name: "Appearance",
     fields: [
       { key: "alphaBoost", label: "Intensity", min: 0, max: 3, step: 0.05, unit: "×" },
+      { key: "opacity", label: "Opacity", min: 0, max: 1, step: 0.02, unit: "" },
       { key: "coreStopMin", label: "Softness min", min: 0, max: 1, step: 0.02, unit: "", spawn: true, pairMax: "coreStopMax" },
       { key: "coreStopMax", label: "Softness max", min: 0, max: 1, step: 0.02, unit: "", spawn: true, pairMin: "coreStopMin" },
       { key: "pulseAmp", label: "Breathe size", min: 0, max: 0.5, step: 0.01, unit: "" },

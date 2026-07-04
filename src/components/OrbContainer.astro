@@ -58,6 +58,7 @@
     // radius before fading to transparent — higher = more defined/less blurred.
     alphaBoost: 1.6, // multiply each orb's base center alpha
     alphaMax: 0.85, // cap so boosted orbs never go fully opaque
+    opacity: 1, // global field opacity multiplier (0-1), applied after everything
     // Per-orb softness: each orb picks a core hold-fraction in this range.
     // Low = soft/blurry, high = sharp/defined.
     coreStopMin: 0.15,
@@ -221,7 +222,8 @@
       const hit = Math.sqrt(Math.min(Math.hypot(o.vx, o.vy) / CONFIG.squishRefSpeed, 1));
       const rr = o.r * (1 + pulse * CONFIG.pulseAmp) * (1 - hit * CONFIG.pushSquish);
       const env = envelope(o) * (1 + pulse * CONFIG.pulseOpacityAmp);
-      const a = Math.min(o.color.a * CONFIG.alphaBoost, CONFIG.alphaMax) * env;
+      const a =
+        Math.min(o.color.a * CONFIG.alphaBoost, CONFIG.alphaMax) * env * CONFIG.opacity;
       if (a <= 0 || rr <= 0) return;
 
       const px = o.x;
