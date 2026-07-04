@@ -49,6 +49,11 @@
     speedMax: 100, // px/s
     growthMax: 15, // px/s radius growth while young
     maxDt: 0.05, // clamp delta time so a pause never makes orbs jump
+    // Orb diameters (px). Mobile (<768px) uses these scaled by mobileSizeScale.
+    sizeMin: 200,
+    sizeMax: 500,
+    mobileSizeScale: 0.5,
+    grayscale: false, // render the whole field in luminance grays
     // Fill shape: a solid-ish core that holds its color out to `coreStop` of the
     // radius before fading to transparent — higher = more defined/less blurred.
     alphaBoost: 1.6, // multiply each orb's base center alpha
@@ -85,6 +90,9 @@
     respondMax: 1,
   };
 
+  // Pristine copy of the tunables so the control panel's Reset can restore them.
+  const DEFAULTS = { ...CONFIG, colors: [...CONFIG.colors] };
+
   type RGB = { r: number; g: number; b: number; a: number };
 
   type Orb = {
@@ -108,14 +116,24 @@
     color: RGB;
   };
 
-  // Parse "rgba(r, g, b, a)" once into numeric channels.
-  const PALETTE: RGB[] = CONFIG.colors.map((c) => {
+  // Parse "rgba(r, g, b, a)" into numeric channels.
+  function parseColor(c: string): RGB {
     const m = c.match(/rgba?\(([^)]+)\)/);
     const [r, g, b, a] = (m ? m[1] : "0,0,0,1")
       .split(",")
       .map((n) => parseFloat(n.trim()));
     return { r, g, b, a: a === undefined ? 1 : a };
-  });
+  }
+
+  // Which palette entries are active (all on by default), and the live palette the
+  // spawner picks from. rebuildPalette() re-derives PALETTE from the enabled subset.
+  const enabledColors: boolean[] = CONFIG.colors.map(() => true);
+  let PALETTE: RGB[] = CONFIG.colors.map(parseColor);
+  function rebuildPalette() {
+    const on = CONFIG.colors.filter((_, i) => enabledColors[i]);
+    // Fall back to the full palette if every color is disabled (never blank).
+    PALETTE = (on.length ? on : CONFIG.colors).map(parseColor);
+  }
 
   function rand(min: number, max: number) {
     return min + Math.random() * (max - min);
@@ -126,8 +144,9 @@
   }
 
   function sizeRange() {
-    // Diameters, matching the old getSize() feel; radius = diameter / 2.
-    return window.innerWidth < 768 ? { min: 50, max: 250 } : { min: 200, max: 500 };
+    // Diameters (radius = diameter / 2). Mobile scales the configured range down.
+    const scale = window.innerWidth < 768 ? CONFIG.mobileSizeScale : 1;
+    return { min: CONFIG.sizeMin * scale, max: CONFIG.sizeMax * scale };
   }
 
   function makeOrb(): Orb {
@@ -210,7 +229,11 @@
       // Being hit also softens the core (blurrier edge), easing back as it slows.
       const core = o.core * (1 - hit * CONFIG.pushBlur);
       const grad = ctx!.createRadialGradient(px, py, 0, px, py, rr);
-      const { r, g, b } = o.color;
+      let { r, g, b } = o.color;
+      if (CONFIG.grayscale) {
+        const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+        r = g = b = gray;
+      }
       grad.addColorStop(0, `rgba(${r},${g},${b},${a})`);
       grad.addColorStop(core, `rgba(${r},${g},${b},${a})`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -324,6 +347,22 @@
       });
     }
 
+    // Re-seed the field on demand (used by the control panel's Respawn button so
+    // spawn-time params take effect immediately). Static frame under reduced motion.
+    function respawn() {
+      if (reduceMq.matches) {
+        renderStatic();
+      } else {
+        seed();
+      }
+    }
+
+    // Redraw the current frame when the loop isn't running, so appearance changes
+    // made via the control panel are visible under reduced motion.
+    function refresh() {
+      if (!running) render();
+    }
+
     function onResize() {
       if (resizeQueued) return;
       resizeQueued = true;
@@ -402,11 +441,41 @@
       document.removeEventListener("pointerleave", onPointerLeave);
     }
 
+    // Live-tuning API for the control panel (OrbControls.astro). Mutating CONFIG
+    // takes effect on the next frame/spawn; refresh() covers the reduced-motion case.
+    const orbControls = {
+      getConfig: () => CONFIG as Record<string, unknown>,
+      getColors: () =>
+        CONFIG.colors.map((rgba, i) => ({ rgba, enabled: enabledColors[i] })),
+      set(key: string, value: unknown) {
+        (CONFIG as Record<string, unknown>)[key] = value;
+        refresh();
+      },
+      setColorEnabled(i: number, on: boolean) {
+        enabledColors[i] = on;
+        rebuildPalette();
+        refresh();
+      },
+      respawn: () => respawn(),
+      reset() {
+        Object.assign(CONFIG, DEFAULTS);
+        CONFIG.colors = [...DEFAULTS.colors];
+        for (let i = 0; i < enabledColors.length; i++) enabledColors[i] = true;
+        rebuildPalette();
+        respawn();
+        refresh();
+      },
+    };
+
     // Start once. The canvas + this script persist across View Transitions
     // (transition:persist), so guard against a second loop being created.
-    const w = window as unknown as { __orbEngineStarted?: boolean };
+    const w = window as unknown as {
+      __orbEngineStarted?: boolean;
+      orbControls?: typeof orbControls;
+    };
     if (!w.__orbEngineStarted) {
       w.__orbEngineStarted = true;
+      w.orbControls = orbControls;
       init();
       // Clean up only on a real page teardown, not on SPA navigations.
       window.addEventListener("pagehide", teardown, { once: true });

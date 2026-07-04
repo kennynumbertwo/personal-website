@@ -1,0 +1,448 @@
+---
+// Live control panel for the orb background. Rendered on the homepage only.
+// Behavior/state lives in the `orbControls` Alpine component (src/entrypoint.js),
+// which talks to window.orbControls exposed by the engine (OrbContainer.astro).
+---
+
+<div
+  x-data="orbControls"
+  @keydown.escape.window="open && close()"
+  class="orb-controls font-mono"
+>
+  <!-- Trigger: a small live orb emblem — the thing it controls, in miniature. -->
+  <button
+    x-ref="trigger"
+    type="button"
+    @click="toggle()"
+    :aria-expanded="open"
+    aria-controls="orb-panel"
+    aria-label="Orb background controls"
+    class="orb-trigger"
+    x-show="!open"
+    x-transition.opacity.duration.150ms
+  >
+    <span class="orb-emblem" aria-hidden="true"></span>
+  </button>
+
+  <!-- Panel -->
+  <section
+    id="orb-panel"
+    x-show="open"
+    x-cloak
+    role="dialog"
+    aria-label="Orb background controls"
+    x-transition:enter="orb-anim transition ease-out duration-150"
+    x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+    x-transition:leave="orb-anim transition ease-in duration-100"
+    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+    x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+    class="orb-panel origin-bottom-right"
+  >
+    <header class="orb-panel__head">
+      <span class="orb-panel__title">orb&nbsp;field</span>
+      <button
+        x-ref="close"
+        type="button"
+        @click="close()"
+        class="orb-x"
+        aria-label="Close controls"
+      >×</button>
+    </header>
+
+    <div class="orb-panel__body">
+      <template x-for="group in groups" :key="group.name">
+        <section class="orb-group">
+          <h3 class="orb-group__label" x-text="group.name"></h3>
+
+          <template x-for="field in group.fields" :key="field.key">
+            <label class="orb-row">
+              <span class="orb-row__label" x-text="field.label"></span>
+              <output
+                class="orb-row__value"
+                x-text="values[field.key] + (field.unit ? ' ' + field.unit : '')"
+              ></output>
+              <input
+                type="range"
+                :min="field.min"
+                :max="field.max"
+                :step="field.step"
+                x-model.number="values[field.key]"
+                @input="apply(field)"
+                :aria-label="field.label"
+                class="orb-range"
+              />
+            </label>
+          </template>
+
+          <!-- Non-slider Appearance controls live with the appearance sliders. -->
+          <template x-if="group.name === 'Appearance'">
+            <div class="orb-extras">
+              <!-- Grayscale -->
+              <div class="orb-switchrow">
+                <span class="orb-row__label">Grayscale</span>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="grayscale"
+                  @click="toggleGrayscale()"
+                  class="orb-switch"
+                  :class="grayscale && 'orb-switch--on'"
+                >
+                  <span class="orb-switch__knob"></span>
+                </button>
+              </div>
+
+              <!-- Blend mode -->
+              <div class="orb-field">
+                <span class="orb-row__label">Blend</span>
+                <div class="orb-seg" role="group" aria-label="Blend mode">
+                  <template x-for="mode in blendModes" :key="mode">
+                    <button
+                      type="button"
+                      @click="setBlend(mode)"
+                      :aria-pressed="blendMode === mode"
+                      class="orb-seg__btn"
+                      :class="blendMode === mode && 'orb-seg__btn--on'"
+                      x-text="mode === 'source-over' ? 'none' : mode"
+                    ></button>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Palette -->
+              <div class="orb-field">
+                <span class="orb-row__label">Palette</span>
+                <div class="orb-swatches" role="group" aria-label="Palette colors">
+                  <template x-for="(c, i) in colors" :key="i">
+                    <button
+                      type="button"
+                      @click="toggleColor(i)"
+                      :aria-pressed="c.enabled"
+                      :aria-label="'Color ' + (i + 1)"
+                      class="orb-swatch"
+                      :class="!c.enabled && 'orb-swatch--off'"
+                      :style="`--sw:${c.rgba}`"
+                    ></button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+        </section>
+      </template>
+    </div>
+
+    <footer class="orb-panel__foot">
+      <button type="button" @click="respawn()" class="orb-action">respawn</button>
+      <button type="button" @click="reset()" class="orb-action">reset</button>
+    </footer>
+  </section>
+</div>
+
+<style>
+  [x-cloak] {
+    display: none !important;
+  }
+
+  .orb-controls {
+    --ink: #111;
+    --hair: rgba(0, 0, 0, 0.14);
+    --muted: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Trigger — a miniature orb, softly breathing. */
+  .orb-trigger {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 40;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--hair);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .orb-trigger:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  }
+  .orb-trigger:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  .orb-emblem {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: radial-gradient(
+      circle at 50% 45%,
+      rgba(55, 88, 102, 0.9) 0%,
+      rgba(143, 57, 130, 0.5) 45%,
+      rgba(255, 255, 255, 0) 72%
+    );
+    animation: orb-breathe 4.5s ease-in-out infinite;
+  }
+  @keyframes orb-breathe {
+    0%,
+    100% {
+      transform: scale(0.88);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.06);
+      opacity: 1;
+    }
+  }
+
+  /* Panel */
+  .orb-panel {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 50;
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    max-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.14);
+    color: var(--ink);
+  }
+
+  .orb-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .orb-panel__title {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .orb-x {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    background: none;
+    border: none;
+  }
+  .orb-x:hover {
+    color: var(--ink);
+  }
+  .orb-x:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .orb-panel__body {
+    overflow-y: auto;
+    padding: 4px 14px 8px;
+  }
+
+  .orb-group {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .orb-group:last-child {
+    border-bottom: none;
+  }
+  .orb-group__label {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* Slider row: label + right-aligned readout above a full-width range. */
+  .orb-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin-bottom: 12px;
+  }
+  .orb-row__label {
+    font-size: 12px;
+  }
+  .orb-row__value {
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .orb-range {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 2px;
+    margin: 6px 0 0;
+    accent-color: var(--ink);
+    cursor: pointer;
+  }
+  .orb-range:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  .orb-extras {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .orb-switchrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .orb-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Toggle switch */
+  .orb-switch {
+    position: relative;
+    width: 34px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid var(--hair);
+    background: rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: background 150ms ease;
+    padding: 0;
+  }
+  .orb-switch--on {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .orb-switch__knob {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: #fff;
+    transition: transform 150ms ease;
+  }
+  .orb-switch--on .orb-switch__knob {
+    transform: translateX(16px);
+  }
+  .orb-switch:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  /* Segmented control (blend mode) */
+  .orb-seg {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .orb-seg__btn {
+    font-size: 11px;
+    padding: 5px 2px;
+    border: 1px solid var(--hair);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+  }
+  .orb-seg__btn:hover {
+    color: var(--ink);
+  }
+  .orb-seg__btn--on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .orb-seg__btn:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  /* Palette swatches */
+  .orb-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .orb-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--hair);
+    background:
+      linear-gradient(var(--sw), var(--sw)),
+      repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 0 / 8px 8px;
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+  .orb-swatch:hover {
+    transform: scale(1.12);
+  }
+  .orb-swatch--off {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+  .orb-swatch:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  /* Footer actions */
+  .orb-panel__foot {
+    display: flex;
+    gap: 18px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--hair);
+  }
+  .orb-action {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms ease;
+  }
+  .orb-action:hover {
+    border-bottom-color: var(--ink);
+  }
+  .orb-action:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb-emblem {
+      animation: none;
+    }
+    .orb-anim {
+      transition-duration: 1ms !important;
+    }
+    .orb-anim.translate-y-2,
+    .orb-anim.scale-95 {
+      transform: none !important;
+    }
+  }
+</style>
