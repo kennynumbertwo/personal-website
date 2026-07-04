@@ -446,7 +446,11 @@
     const orbControls = {
       getConfig: () => CONFIG as Record<string, unknown>,
       getColors: () =>
-        CONFIG.colors.map((rgba, i) => ({ rgba, enabled: enabledColors[i] })),
+        CONFIG.colors.map((rgba, i) => {
+          const c = parseColor(rgba);
+          // `solid` drops alpha so the panel can show the true hue as a swatch.
+          return { rgba, solid: `rgb(${c.r}, ${c.g}, ${c.b})`, enabled: enabledColors[i] };
+        }),
       set(key: string, value: unknown) {
         (CONFIG as Record<string, unknown>)[key] = value;
         refresh();
