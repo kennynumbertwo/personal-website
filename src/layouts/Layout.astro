@@ -3,6 +3,7 @@ import { ViewTransitions } from "astro:transitions";
 import BaseHead from "@/components/BaseHead.astro";
 import MainNav from "@/components/MainNav.astro";
 import OrbContainer from "@/components/OrbContainer.astro";
+import OrbControls from "@/components/OrbControls.astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 import "@fontsource/cutive-mono";
 import "@fontsource/lato/300.css";
@@ -34,5 +35,6 @@ const description = frontmatter?.description || Astro.props.description;
     <OrbContainer />
     <MainNav />
     <slot />
+    <OrbControls transition:persist />
   </body>
 </html>

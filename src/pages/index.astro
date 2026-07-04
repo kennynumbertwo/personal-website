@@ -4,7 +4,6 @@ import { siteConfigQuery } from "@/lib/queries";
 import Layout from "../layouts/Layout.astro";
 import FeaturedProjectDetails from "../components/FeaturedProjectDetails.astro";
 import InfoFixed from "../components/InfoFixed.astro";
-import OrbControls from "../components/OrbControls.astro";
 import { SITE } from "../config";
 
 const data = await sanityClient.fetch(siteConfigQuery);
@@ -29,5 +28,4 @@ const { selectWork } = data;
     </div>
     <InfoFixed />
   </main>
-  <OrbControls />
 </Layout>
