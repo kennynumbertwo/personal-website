@@ -1,12 +1,6 @@
-<canvas
-  id="orb-canvas"
-  class="orb-canvas"
-  aria-hidden="true"
-  transition:persist></canvas>
-<div
-  class="w-full h-full bg-white/60 absolute inset-0"
-  transition:persist
->
+<canvas id="orb-canvas" class="orb-canvas" aria-hidden="true" transition:persist
+></canvas>
+<div class="w-full h-full bg-white/60 absolute inset-0" transition:persist>
 </div>
 
 <style>
@@ -46,20 +40,20 @@
       "rgba(165, 135, 205, 0.3)", // lilac
     ],
     spawnIntervalMs: 2500,
-    maxOrbs: 15,
-    seedCount: 5, // orbs present on first paint so the field isn't empty
+    maxOrbs: 20,
+    seedCount: 8, // orbs present on first paint so the field isn't empty
     reducedMotionCount: 5,
     // Lifecycle (perceived durations); envelope = fade in -> hold -> fade out.
     fadeInMs: 2500,
     holdMs: 8000,
     fadeOutMs: 2500,
-    speedMin: 30, // px/s
-    speedMax: 100, // px/s
-    growthMax: 15, // px/s radius growth while young
+    speedMin: 20, // px/s
+    speedMax: 135, // px/s
+    growthMax: 30, // px/s radius growth while young
     maxDt: 0.05, // clamp delta time so a pause never makes orbs jump
     // Orb diameters (px). Mobile (<768px) uses these scaled by mobileSizeScale.
     sizeMin: 200,
-    sizeMax: 500,
+    sizeMax: 640,
     mobileSizeScale: 0.5,
     grayscale: false, // render the whole field in luminance grays
     // Fill shape: a solid-ish core that holds its color out to `coreStop` of the
@@ -71,21 +65,21 @@
     // Per-orb softness: each orb picks a core hold-fraction in this range.
     // Low = soft/blurry, high = sharp/defined.
     coreStopMin: 0.15,
-    coreStopMax: 0.7,
+    coreStopMax: 0.88,
     // Organic wandering: heading slowly curves (turn) with a gentle swing (wander)
     // so orbs meander instead of moving in straight lines. All in radians / rad-per-s.
-    turnRateMax: 0.25, // baseline curl, rad/s (random sign per orb)
+    turnRateMax: 0.3, // baseline curl, rad/s (random sign per orb)
     wanderAmp: 0.5, // extra heading swing amplitude, rad/s
     wanderFreqMin: 0.2, // swing rate, rad/s
-    wanderFreqMax: 0.7,
+    wanderFreqMax: 0.95,
     // Color blending where orbs overlap. "lighter" = luminous additive mixing;
     // try "lighten", "screen", or "source-over" (no blend) to taste.
     blendMode: "lighter" as GlobalCompositeOperation,
     // Breathing pulse: each orb gently oscillates size + opacity on its own cycle.
     pulseAmp: 0.08, // radius +/- fraction
     pulseOpacityAmp: 0.12, // opacity +/- fraction
-    pulseFreqMin: 0.5, // rad/s (period ~9-13s)
-    pulseFreqMax: 0.7,
+    pulseFreqMin: 0.35, // rad/s (period ~9-13s)
+    pulseFreqMax: 0.95,
     // Cursor proximity: the mouse imparts an impulse (kick) to an orb's velocity
     // as it nears, so the orb coasts off in that direction and gradually rejoins
     // its drift (disabled under reduced motion). Negative pushForce = attraction.
@@ -97,7 +91,7 @@
     pushBlur: 0.55, // max softening of the core when hit (0-1); eases back as it slows
     squishRefSpeed: 220, // push speed at which squish maxes out (lower = more sensitive)
     respondMin: 0.6, // per-orb responsiveness range (variety)
-    respondMax: 1,
+    respondMax: 1.2,
   };
 
   // Pristine copy of the tunables so the control panel's Reset can restore them.
@@ -147,7 +141,10 @@
 
   // Strongest alpha in the palette — the reference so `opacity` = 1 makes the boldest
   // color a fully solid center while keeping the palette's relative alpha variety.
-  const MAX_ALPHA = Math.max(...CONFIG.colors.map((c) => parseColor(c).a), 0.001);
+  const MAX_ALPHA = Math.max(
+    ...CONFIG.colors.map((c) => parseColor(c).a),
+    0.001,
+  );
 
   function rand(min: number, max: number) {
     return min + Math.random() * (max - min);
@@ -197,7 +194,9 @@
     return Math.max(0, 1 - (o.age - fadeInMs - holdMs) / CONFIG.fadeOutMs);
   }
 
-  const canvas = document.getElementById("orb-canvas") as HTMLCanvasElement | null;
+  const canvas = document.getElementById(
+    "orb-canvas",
+  ) as HTMLCanvasElement | null;
   const ctx = canvas?.getContext("2d") ?? null;
 
   if (canvas && ctx) {
@@ -232,13 +231,17 @@
       // Recoil squish: shrink in proportion to how hard it was just hit. The push
       // velocity decays via friction, so the orb eases back to full size on its own.
       // sqrt ease-out: the dent ramps in fast on the first bit of push, then saturates.
-      const hit = Math.sqrt(Math.min(Math.hypot(o.vx, o.vy) / CONFIG.squishRefSpeed, 1));
-      const rr = o.r * (1 + pulse * CONFIG.pulseAmp) * (1 - hit * CONFIG.pushSquish);
+      const hit = Math.sqrt(
+        Math.min(Math.hypot(o.vx, o.vy) / CONFIG.squishRefSpeed, 1),
+      );
+      const rr =
+        o.r * (1 + pulse * CONFIG.pulseAmp) * (1 - hit * CONFIG.pushSquish);
       const env = envelope(o) * (1 + pulse * CONFIG.pulseOpacityAmp);
       // Per-color weight in [0,1] preserves the palette's alpha variety; opacity sets
       // the absolute ceiling (1 = fully solid), intensity boosts within it, capped at 1.
       const relative = o.color.a / MAX_ALPHA;
-      const a = Math.min(relative * CONFIG.opacity * CONFIG.alphaBoost, 1) * env;
+      const a =
+        Math.min(relative * CONFIG.opacity * CONFIG.alphaBoost, 1) * env;
       if (a <= 0 || rr <= 0) return;
 
       const px = o.x;
@@ -287,7 +290,8 @@
         // Organic wandering: curl the heading with a gentle swing, then move.
         const t = o.age / 1000;
         o.heading +=
-          (o.turn + Math.sin(t * o.wanderFreq + o.wanderPhase) * CONFIG.wanderAmp) *
+          (o.turn +
+            Math.sin(t * o.wanderFreq + o.wanderPhase) * CONFIG.wanderAmp) *
           dt;
         o.x += Math.cos(o.heading) * o.speed * dt;
         o.y += Math.sin(o.heading) * o.speed * dt;
@@ -466,7 +470,11 @@
         CONFIG.colors.map((rgba, i) => {
           const c = parseColor(rgba);
           // `solid` drops alpha so the panel can show the true hue as a swatch.
-          return { rgba, solid: `rgb(${c.r}, ${c.g}, ${c.b})`, enabled: enabledColors[i] };
+          return {
+            rgba,
+            solid: `rgb(${c.r}, ${c.g}, ${c.b})`,
+            enabled: enabledColors[i],
+          };
         }),
       set(key: string, value: unknown) {
         (CONFIG as Record<string, unknown>)[key] = value;
