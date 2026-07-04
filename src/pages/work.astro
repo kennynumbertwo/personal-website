@@ -2,78 +2,283 @@
 import { sanityClient } from "sanity:client";
 import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
+import BracketHeader from "@/components/BracketHeader.astro";
 import { projectsQuery } from "@/lib/queries";
 
 const data = await sanityClient.fetch(projectsQuery);
-const filteredProjects = data.filter((project: any) => {
-  if (project.images?.length > 0 && !project.hideFromWork) {
-    return project;
-  }
-});
+
+const projects = data
+  .filter((p: any) => p.images?.length > 0 && !p.hideFromWork)
+  .map((p: any) => {
+    const image = p.images[0];
+    const parsed = p.date ? new Date(p.date).getFullYear() : NaN;
+    const year = Number.isNaN(parsed) ? p.date || "" : String(parsed);
+    return {
+      title: p.title,
+      url: p.url,
+      year,
+      type: p.type || "",
+      studio: p.employer?.name || "",
+      preview: `${image.url}?w=640&auto=format`,
+      thumb: `${image.url}?h=120&auto=format`,
+      aspect: image.dimensions?.aspectRatio || 1.6,
+      thumbW: image.dimensions?.width || 120,
+      thumbH: image.dimensions?.height || 120,
+      alt: image.alt || p.title,
+    };
+  });
 ---
 
 <Layout
   title="Kenny Tye - Work"
-  description="Listing of Kenny Tye's professional web development work."
+  description="Selected professional web development work by Kenny Tye."
 >
-  <main class="flex h-full max-w-screen overflow-y-scroll w-full">
-    <div class="pt-14 md:pt-15 px-2 md:px-3 w-full">
-      <h1 class="sr-only">Work</h1>
-      <div
-        class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 pb-10 w-full"
-        x-ref="projects"
-        x-data={`{
-              animateChildren() {
-                const children = this.$refs.projects.children;
-                Array.from(children).forEach((child, index) => {
-                  child.style.animationDelay = \`\${index * 65}ms\`;
-                  child.classList.add('animate__fade-in');
-                });
-              }
-            }
-          `}
-        x-init="animateChildren()"
+  <main
+    class="flex flex-col h-full relative overflow-y-scroll px-4 pt-20 md:pt-25"
+    x-data="workGallery"
+  >
+    <div class="mx-auto w-full max-w-[784px] pb-20">
+      <BracketHeader text="Work" />
+
+      <div class="work-head font-mono">
+        <span class="wh-title">Project</span>
+        <span class="wh-type">Type</span>
+        <span class="wh-studio">Studio</span>
+        <span class="wh-year">Year</span>
+      </div>
+      <ol
+        class="work-list border-t border-black/10"
+        x-init="animateRows($el)"
+        @mousemove="move($event)"
+        @mouseleave="leave()"
       >
         {
-          filteredProjects.map((project: any) => {
-            const image = project.images[0];
-            return (
+          projects.map((project: any) => (
+            <li class="work-item">
               <a
-                class="project-card group p-2 md:p-3"
+                class="work-row group border-b border-black/10"
                 href={project.url}
                 target="_blank"
+                rel="noopener"
+                data-preview={project.preview}
+                data-aspect={project.aspect}
+                @mouseenter="enter($el)"
               >
-                <div class="relative overflow-hidden aspect-video rounded-md">
+                <span class="work-thumb md:hidden" aria-hidden="true">
                   <Image
-                    loading={"eager"}
-                    src={`${image.url}?h=160&auto=format`}
-                    alt={project.title}
-                    width={image.dimensions.width}
-                    height={image.dimensions.height}
-                    class="inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 ease-in-out"
+                    src={project.thumb}
+                    alt={project.alt}
+                    width={project.thumbW}
+                    height={project.thumbH}
+                    loading="lazy"
+                    class="h-full w-full object-cover"
                   />
-                </div>
-                <div class="text-14 md:text-16 pt-2 justify-between">
-                  <h2 class="font-700 opacity-80 tracking-2pc">
-                    {project.title}
-                  </h2>
-                  <p class="">{project.type}</p>
-                  <p class="">{project.employer.name}</p>
-                </div>
+                </span>
+                <span class="work-title font-mono text-14 tracking-1pc">
+                  {project.title}
+                  <span class="work-arrow" aria-hidden="true">↗</span>
+                </span>
+                <span class="work-meta font-mono text-14 tracking-1pc">
+                  {project.type && <span class="work-type">{project.type}</span>}
+                  {project.type && project.studio && (
+                    <span class="work-sep" aria-hidden="true"> · </span>
+                  )}
+                  {project.studio && <span class="work-studio">{project.studio}</span>}
+                </span>
+                <span class="work-year font-mono text-14 tracking-1pc">
+                  {project.year}
+                </span>
               </a>
-            );
-          })
+            </li>
+          ))
         }
-      </div>
+      </ol>
     </div>
+
+    {/* Cursor-following image preview (desktop, fine pointer, non-reduced-motion). */}
+    <img
+      class="work-preview"
+      x-show="active"
+      x-cloak
+      alt=""
+      aria-hidden="true"
+      :src="previewSrc"
+      :style="`aspect-ratio:${previewAspect}; transform:${transform}`"
+      x-transition:enter="wp-fade"
+      x-transition:enter-start="wp-hidden"
+      x-transition:enter-end="wp-shown"
+      x-transition:leave="wp-fade"
+      x-transition:leave-start="wp-shown"
+      x-transition:leave-end="wp-hidden"
+    />
   </main>
 </Layout>
 
 <style>
-  .project-card {
+  .work-item {
     opacity: 0;
   }
-  .animate__fade-in {
-    animation: fadeIn 400ms ease forwards;
+
+  /* Column header — desktop only (mobile rows are stacked, so no header). */
+  .work-head {
+    display: none;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.4;
+  }
+  .wh-type,
+  .wh-studio,
+  .wh-year {
+    text-align: right;
+  }
+
+  .work-row {
+    display: grid;
+    align-items: center;
+    column-gap: 1rem;
+    row-gap: 0.1rem;
+    padding-block: 0.55rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "thumb title year"
+      "thumb meta  year";
+    transition: opacity 200ms ease;
+  }
+
+  .work-thumb {
+    grid-area: thumb;
+    width: 3rem;
+    height: 3rem;
+    overflow: hidden;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .work-title {
+    grid-area: title;
+    min-width: 0;
+    line-height: 1.15;
+  }
+  .work-meta {
+    grid-area: meta;
+    min-width: 0;
+  }
+  .work-type,
+  .work-studio,
+  .work-sep {
+    opacity: 0.5;
+  }
+  .work-year {
+    grid-area: year;
+    opacity: 0.5;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* External-link cue: reveals on hover / keyboard focus. */
+  .work-arrow {
+    display: inline-block;
+    margin-left: 0.4em;
+    font-size: 0.85em;
+    vertical-align: 0.05em;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+  /* Keyboard focus reveals the arrow on any device. */
+  .work-row:focus-visible .work-arrow {
+    opacity: 0.75;
+    transform: translate(0, 0);
+  }
+  .work-row:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 3px;
+  }
+
+  /* Hover-only: arrow reveal + spotlight dim. Excluded on touch so a tap doesn't
+     leave a row stuck in its hover state. */
+  @media (hover: hover) and (pointer: fine) {
+    .work-row:hover .work-arrow {
+      opacity: 0.75;
+      transform: translate(0, 0);
+    }
+    .work-list:hover .work-row {
+      opacity: 0.35;
+    }
+    .work-list:hover .work-row:hover {
+      opacity: 1;
+    }
+  }
+
+  /* Floating preview */
+  .work-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 290px;
+    max-width: 40vw;
+    border-radius: 5px;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.2);
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 30;
+    will-change: transform;
+  }
+  .wp-fade {
+    transition: opacity 150ms ease;
+  }
+  .wp-hidden {
+    opacity: 0;
+  }
+  .wp-shown {
+    opacity: 1;
+  }
+
+  @media (min-width: 768px) {
+    /* Shared fixed columns so the header and every row line up exactly. */
+    .work-head,
+    .work-row {
+      grid-template-columns: minmax(0, 1fr) 9rem 7rem 8.5rem;
+      column-gap: 1.5rem;
+    }
+    .work-head {
+      display: grid;
+      padding-bottom: 0.75rem;
+    }
+    .work-row {
+      grid-template-areas: "title type studio year";
+      padding-block: 0.7rem;
+      align-items: baseline;
+    }
+    /* Promote type/studio to real grid columns on desktop; hide the mobile dot. */
+    .work-meta {
+      display: contents;
+    }
+    .work-type {
+      grid-area: type;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .work-studio {
+      grid-area: studio;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .work-sep {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-item {
+      opacity: 1;
+      animation: none !important;
+    }
+    .work-arrow,
+    .work-row,
+    .work-preview {
+      transition: none;
+    }
   }
 </style>
