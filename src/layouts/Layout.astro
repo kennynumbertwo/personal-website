@@ -36,5 +36,26 @@ const description = frontmatter?.description || Astro.props.description;
     <MainNav />
     <slot />
     <OrbControls transition:persist />
+    <script>
+      // Vercel Analytics custom events via delegation: any element with a
+      // `data-va-event` attribute fires that event on click, with any extra
+      // `data-va-*` attributes passed as (non-personal) event properties.
+      // No-op when the analytics script isn't present (e.g. local dev).
+      const w = window as unknown as { __vaEventsBound?: boolean };
+      if (!w.__vaEventsBound) {
+        w.__vaEventsBound = true;
+        document.addEventListener("click", (e) => {
+          const el = (e.target as HTMLElement)?.closest?.("[data-va-event]");
+          if (!(el instanceof HTMLElement)) return;
+          const props: Record<string, string> = {};
+          for (const attr of Array.from(el.attributes)) {
+            if (attr.name.startsWith("data-va-") && attr.name !== "data-va-event") {
+              props[attr.name.slice("data-va-".length)] = attr.value;
+            }
+          }
+          (window as any).va?.("event", { name: el.dataset.vaEvent, ...props });
+        });
+      }
+    </script>
   </body>
 </html>

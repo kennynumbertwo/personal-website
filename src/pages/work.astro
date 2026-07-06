@@ -62,6 +62,8 @@ const projects = data
                 rel="noopener"
                 data-preview={project.preview}
                 data-aspect={project.aspect}
+                data-va-event="project_open"
+                data-va-project={project.title}
                 @mouseenter="enter($el)"
               >
                 <span class="work-thumb md:hidden" aria-hidden="true">
