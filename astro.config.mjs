@@ -1,28 +1,22 @@
 import { defineConfig } from "astro/config";
-import tailwind from "@astrojs/tailwind";
 import alpine from "@astrojs/alpinejs";
-import { sanityIntegration } from "@sanity/astro";
 import { SITE } from "./src/config";
 
-import vercel from "@astrojs/vercel/serverless";
+import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
+// Tailwind 4 is wired via PostCSS (postcss.config.mjs); the @tailwindcss/vite
+// plugin is incompatible with the Vite build Astro bundles.
 export default defineConfig({
-  output: "hybrid",
   integrations: [
-    tailwind(),
     alpine({
       entrypoint: "/src/entrypoint",
     }),
-    sanityIntegration({
-      projectId: "epj8euse",
-      dataset: "production",
-      // Set useCdn to false if you're building statically.
-      useCdn: false,
-      // Access the Studio on your.url/admin
-      studioBasePath: "/admin",
-    }),
   ],
+  image: {
+    // Sanity CDN is the only remote image source (see src/lib/sanity.js).
+    domains: ["cdn.sanity.io"],
+  },
   site: SITE.url,
   adapter: vercel({
     webAnalytics: { enabled: true },

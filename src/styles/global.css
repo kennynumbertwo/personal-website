@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@config "../../tailwind.config.mjs";
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
@@ -42,7 +45,7 @@ code {
     width: 0;
     left: -6px;
     height: 100%;
-    background-color: theme("colors.black");
+    background-color: #000;
     opacity: 0.8;
     transition: all 100ms ease-in-out;
     z-index: -1;
@@ -78,7 +81,7 @@ code {
     width: calc(100% + 8px);
     left: -4px;
     height: 100%;
-    background-color: theme("colors.black");
+    background-color: #000;
     transition: all 100ms ease-in-out;
     z-index: -1;
     transform: scaleY(0);
