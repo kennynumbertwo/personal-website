@@ -121,17 +121,9 @@ code {
   @apply text-12 leading-1.5 -tracking-2pc;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Opacity only, no transform: animating transform forces iOS to composite the
+   text onto its own layer, and tearing that layer down at the end re-rasterizes
+   the glyphs (grayscale -> subpixel antialiasing), which reads as a flash. */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -141,6 +133,35 @@ code {
   }
 }
 
-.animate__fade-in-up {
-  animation: fadeInUp 400ms cubic-bezier(0.59, 0.19, 0.29, 0.99) forwards;
+/* `both` fill is load-bearing: the backwards half holds opacity:0 through the
+   stagger delay, which the resting rule below would otherwise defeat. */
+.animate__fade-in {
+  animation: fadeIn 400ms cubic-bezier(0.59, 0.19, 0.29, 0.99) both;
+}
+
+/* Resting state, declared so it matches the animation's end state exactly, so
+   there is no underlying value for iOS to repaint when the animation ends.
+   Repeated class = specificity (0,3,0), enough to outrank .rte p:first-of-type.
+   Deliberately not !important — important declarations outrank CSS animations
+   and would flatten the fade into an instant pop. */
+.animate__fade-in.animate__fade-in.animate__fade-in {
+  opacity: 1;
+}
+
+/* Both must stay after the rule above: same specificity, so source order decides.
+   The resting opacity:1 still applies, so the text simply appears. */
+@media (prefers-reduced-motion: reduce) {
+  .animate__fade-in {
+    animation: none;
+  }
+}
+
+/* Touch devices reveal without the fade. iOS tears down the composited layer
+   when the animation ends and repaints, which blinks the text — most visibly on
+   /work and /about, whose rows contain nested opacity/transform children that
+   force a transparency group. Revisit if the underlying cause gets fixed. */
+@media (hover: none) {
+  .animate__fade-in {
+    animation: none;
+  }
 }

@@ -100,11 +100,13 @@ const { client, date, employer, contribution, type, technologies, images } =
 </div>
 
 <style>
+  /* Astro scopes selectors but not @keyframes names, so this name is global —
+     it must not collide with the fadeInUp in global.css. */
   .animate-enter {
-    animation: fadeInUp 200ms ease-in-out forwards;
+    animation: fadeInUpTag 200ms ease-in-out forwards;
   }
 
-  @keyframes fadeInUp {
+  @keyframes fadeInUpTag {
     from {
       opacity: 0;
       transform: translateY(6px);

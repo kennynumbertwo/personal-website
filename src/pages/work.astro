@@ -48,7 +48,7 @@ const projects = data
       </div>
       <ol
         class="work-list border-t border-black/10"
-        x-init="animateRows($el)"
+        x-reveal-children="30"
         @mousemove="move($event)"
         @mouseleave="leave()"
       >
@@ -237,6 +237,15 @@ const projects = data
     opacity: 1;
   }
 
+  /* Backstop: the preview is desktop-only, and x-show's inline display:none is
+     not load-bearing enough on its own — Alpine's :style bind rewrites the whole
+     style attribute and can clear it. !important because it has to beat inline. */
+  @media (hover: none) {
+    .work-preview {
+      display: none !important;
+    }
+  }
+
   @media (min-width: 768px) {
     /* Shared fixed columns so the header and every row line up exactly. */
     .work-head,
@@ -273,9 +282,10 @@ const projects = data
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /* The animation is disabled globally (see global.css); this keeps the rows
+       visible even if JS never runs. */
     .work-item {
       opacity: 1;
-      animation: none !important;
     }
     .work-arrow,
     .work-row,

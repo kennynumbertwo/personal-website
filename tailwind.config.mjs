@@ -100,24 +100,6 @@ export default {
         350: "350ms",
         400: "400ms",
       },
-      animation: {
-        "fade-in-500": "fadeIn 500ms ease-in-out forwards",
-        "fade-out-500": "fadeOut 500ms ease-in-out forwards",
-      },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0%" },
-          "100%": { opacity: "100%" },
-        },
-        fadeOut: {
-          "0%": { opacity: "100%" },
-          "100%": { opacity: "0%" },
-        },
-        fadeOut60: {
-          "0%": { opacity: "100%" },
-          "100%": { opacity: "60%" },
-        },
-      },
     },
   },
   plugins: [],

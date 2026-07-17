@@ -10,17 +10,7 @@ import "../styles/page-fonts.css";
 >
   <main
     class="flex flex-col h-full relative overflow-y-scroll px-4 pt-20 md:pt-25"
-    x-data={`{
-      animate(el) {
-        const elements = el.querySelectorAll('.animate');
-        Array.from(elements).forEach((element, index) => {
-          element.style.animationDelay = \`\${index * 65}ms\`;
-          element.classList.add('animate__fade-in-up');
-        });
-      }
-    }
-  `}
-    x-init="animate($el)"
+    x-reveal
   >
     <div class="mx-auto w-full max-w-[784px]">
       <BracketHeader text="Contact" />
@@ -35,8 +25,7 @@ import "../styles/page-fonts.css";
       <a
         href="mailto:kenny@destroybox.studio"
         target="_blank"
-        class="z-10 hover:underline opacity-0 block"
-        style="animation: fadeInUp 400ms cubic-bezier(0.59, 0.19, 0.29, 0.99) forwards 300ms"
+        class="z-10 hover:underline opacity-0 block animate"
         data-va-event="contact_click"
         data-va-source="contact"
         >kenny@destroybox.studio</a
